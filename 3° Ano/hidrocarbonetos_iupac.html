@@ -1,0 +1,1519 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulador de Hidrocarbonetos IUPAC</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #ffffff;
+    --bg2: #f5f4f0;
+    --bg3: #eceae3;
+    --text: #1a1a18;
+    --text2: #5f5e5a;
+    --text3: #888780;
+    --border: rgba(0,0,0,0.12);
+    --border2: rgba(0,0,0,0.22);
+    --info-bg: #e6f1fb;
+    --info-text: #185fa5;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1e1e1c;
+      --bg2: #2a2a27;
+      --bg3: #333330;
+      --text: #e8e6de;
+      --text2: #b4b2a9;
+      --text3: #888780;
+      --border: rgba(255,255,255,0.12);
+      --border2: rgba(255,255,255,0.22);
+      --info-bg: #0c447c;
+      --info-text: #b5d4f4;
+    }
+  }
+
+  body {
+    font-family: system-ui, -apple-system, sans-serif;
+    background: var(--bg3);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 1.5rem 1rem;
+  }
+
+  h1 {
+    font-size: 20px;
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+    color: var(--text);
+  }
+  .subtitle {
+    font-size: 13px;
+    color: var(--text3);
+    margin-bottom: 1.25rem;
+  }
+
+  #app {
+    max-width: 860px;
+    margin: 0 auto;
+  }
+
+  .header-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+  }
+
+  .name-display {
+    background: var(--bg);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1rem 1.5rem;
+    flex: 1;
+    min-width: 220px;
+  }
+  .name-display .label {
+    font-size: 10px;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 4px;
+  }
+  .name-display .iupac {
+    font-size: 24px;
+    font-weight: 500;
+    color: var(--text);
+    min-height: 34px;
+  }
+  .name-display .formula {
+    font-size: 13px;
+    color: var(--text2);
+    margin-top: 4px;
+  }
+  .type-badge {
+    display: inline-block;
+    margin-top: 6px;
+    font-size: 11px;
+    padding: 2px 10px;
+    border-radius: 20px;
+    background: var(--info-bg);
+    color: var(--info-text);
+  }
+
+  .decomp-panel {
+    background: var(--bg);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 0.75rem 1rem;
+    min-width: 210px;
+    font-size: 12px;
+  }
+  .decomp-panel .label {
+    font-size: 10px;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 6px;
+  }
+  .decomp-row {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    margin-bottom: 4px;
+    flex-wrap: wrap;
+  }
+  .decomp-part {
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .p-prefix { background: #b5d4f4; color: #0c447c; }
+  .p-infix  { background: #c0dd97; color: #27500a; }
+  .p-suffix { background: #f5c4b3; color: #712b13; }
+  .p-mod    { background: #f4c0d1; color: #72243e; }
+  @media (prefers-color-scheme: dark) {
+    .p-prefix { background: #0c447c; color: #b5d4f4; }
+    .p-infix  { background: #27500a; color: #c0dd97; }
+    .p-suffix { background: #712b13; color: #f5c4b3; }
+    .p-mod    { background: #72243e; color: #f4c0d1; }
+  }
+  .decomp-legend {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 0.5px solid var(--border);
+  }
+  .leg {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 10px;
+    color: var(--text2);
+  }
+  .leg-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .decomp-info { font-size: 10px; color: var(--text3); margin: 2px 0 0 2px; }
+
+  .tools-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 0.75rem;
+  }
+  .tool-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    background: var(--bg);
+    border: 0.5px solid var(--border2);
+    border-radius: var(--radius-md);
+    padding: 7px 12px;
+    cursor: pointer;
+    font-size: 11px;
+    color: var(--text2);
+    min-width: 62px;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+  }
+  .tool-btn:hover {
+    background: var(--bg2);
+    color: var(--text);
+  }
+  .tool-btn .icon { font-size: 17px; line-height: 1; }
+  .tool-btn.active {
+    background: var(--info-bg);
+    border-color: var(--info-text);
+    color: var(--info-text);
+  }
+
+  .canvas-wrap {
+    background: var(--bg);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    margin-bottom: 0.75rem;
+    position: relative;
+  }
+  canvas {
+    display: block;
+    width: 100%;
+    cursor: crosshair;
+    touch-action: none;
+  }
+
+  .tip {
+    font-size: 12px;
+    color: var(--text3);
+    padding: 0.5rem 0 0.75rem;
+    text-align: center;
+  }
+
+  .ctxmenu {
+    position: absolute;
+    z-index: 20;
+    min-width: 200px;
+    background: var(--bg);
+    border: 0.5px solid var(--border2);
+    border-radius: 10px;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.18);
+    padding: 6px;
+    display: none;
+  }
+  .ctxmenu .title {
+    font-size: 10px;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 6px 8px 4px;
+  }
+  .ctxmenu button {
+    width: 100%;
+    text-align: left;
+    padding: 8px 10px;
+    background: transparent;
+    border: 0;
+    border-radius: 8px;
+    color: var(--text);
+    cursor: pointer;
+    font-size: 12px;
+  }
+  .ctxmenu button:hover { background: var(--bg2); }
+  .ctxmenu .sep {
+    height: 1px;
+    background: var(--border);
+    margin: 6px 2px;
+  }
+
+  .examples-label {
+    font-size: 11px;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    align-self: center;
+  }
+
+  .actions-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 0.75rem;
+    align-items: center;
+  }
+  .act-btn {
+    background: var(--bg);
+    border: 0.5px solid var(--border2);
+    border-radius: var(--radius-md);
+    padding: 6px 14px;
+    cursor: pointer;
+    font-size: 12px;
+    color: var(--text2);
+    transition: background 0.15s, color 0.15s;
+  }
+  .act-btn:hover { background: var(--bg2); color: var(--text); }
+  .act-btn.danger { border-color: #a32d2d; color: #a32d2d; }
+  .act-btn.danger:hover { background: #fcebeb; }
+  @media (prefers-color-scheme: dark) {
+    .act-btn.danger { border-color: #f09595; color: #f09595; }
+    .act-btn.danger:hover { background: #501313; }
+  }
+
+  .info-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .info-card {
+    flex: 1;
+    min-width: 100px;
+    background: var(--bg2);
+    border-radius: var(--radius-md);
+    padding: 8px 12px;
+  }
+  .info-card .ic-label {
+    font-size: 10px;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    margin-bottom: 2px;
+  }
+  .info-card .ic-val {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  footer {
+    text-align: center;
+    font-size: 11px;
+    color: var(--text3);
+    margin-top: 1.5rem;
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <h1>Simulador de Hidrocarbonetos</h1>
+  <p class="subtitle">Monte sua molécula e veja o nome IUPAC em tempo real</p>
+
+  <div class="header-row">
+    <div class="name-display">
+      <div class="label">Nome IUPAC</div>
+      <div class="iupac" id="iupac-name">—</div>
+      <div class="formula" id="mol-formula">Adicione carbonos para começar</div>
+      <span class="type-badge" id="type-badge" style="display:none"></span>
+    </div>
+    <div class="decomp-panel">
+      <div class="label">Decomposição do nome</div>
+      <div id="decomp-rows"></div>
+      <div class="decomp-legend">
+        <span class="leg"><span class="leg-dot" style="background:#f59e0b"></span>Cid. Principal</span>
+        <span class="leg"><span class="leg-dot" style="background:#3b82f6"></span>Cid. Secundária</span>
+        <span class="leg"><span class="leg-dot" style="background:#639922"></span>Infixo (ligação)</span>
+        <span class="leg"><span class="leg-dot" style="background:#d85a30"></span>Sufixo</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="tools-row">
+    <button class="tool-btn active" id="btn-add-c" onclick="setTool('add-c')">
+      <span class="icon">C</span><span>Carbono</span>
+    </button>
+    <button class="tool-btn" id="btn-single" onclick="setTool('single')">
+      <span class="icon">—</span><span>Simples</span>
+    </button>
+    <button class="tool-btn" id="btn-double" onclick="setTool('double')">
+      <span class="icon">=</span><span>Dupla</span>
+    </button>
+    <button class="tool-btn" id="btn-triple" onclick="setTool('triple')">
+      <span class="icon">≡</span><span>Tripla</span>
+    </button>
+    <button class="tool-btn" id="btn-move" onclick="setTool('move')">
+      <span class="icon">✥</span><span>Mover</span>
+    </button>
+    <button class="tool-btn" id="btn-del" onclick="setTool('del')">
+      <span class="icon">✕</span><span>Apagar</span>
+    </button>
+    <button class="tool-btn" id="btn-grid" onclick="toggleGrid()">
+      <span class="icon">▦</span><span>Grade</span>
+    </button>
+    <button class="tool-btn" id="btn-zoom-out" onclick="zoomBy(1 / 1.2)">
+      <span class="icon">−</span><span>Zoom</span>
+    </button>
+    <button class="tool-btn" id="btn-zoom-in" onclick="zoomBy(1.2)">
+      <span class="icon">+</span><span>Zoom</span>
+    </button>
+    <button class="tool-btn" id="btn-zoom-reset" onclick="resetView()">
+      <span class="icon">⟲</span><span>Reset</span>
+    </button>
+  </div>
+
+  <div class="canvas-wrap">
+    <canvas id="mol-canvas" height="340"></canvas>
+    <div class="ctxmenu" id="ctxmenu">
+      <div class="title" id="ctxmenu-title">Opções do átomo</div>
+      <button type="button" id="ctx-add-single">Adicionar carbono (C—C) — CH3 → CH2</button>
+      <button type="button" id="ctx-add-double">Adicionar carbono (C=C)</button>
+      <button type="button" id="ctx-add-triple">Adicionar carbono (C≡C)</button>
+      <div class="sep"></div>
+      <button type="button" id="ctx-delete">Apagar átomo</button>
+      <button type="button" id="ctx-cancel">Fechar</button>
+    </div>
+  </div>
+  <div class="tip" id="tip-msg">Clique no canvas para adicionar um carbono</div>
+  <div class="tip" style="margin-top:-0.35rem">Dica: clique com o botão direito (ou dê duplo clique) em um carbono para opções (ex.: transformar CH3 em CH2 adicionando outro C)</div>
+
+  <div class="actions-row">
+    <button class="act-btn" onclick="doUndo()">↩ Desfazer</button>
+    <button class="act-btn" onclick="autoLayout()">⟳ Reorganizar</button>
+    <span class="examples-label">Exemplos:</span>
+    <button class="act-btn" onclick="addExample('methane')">Metano</button>
+    <button class="act-btn" onclick="addExample('ethene')">Eteno</button>
+    <button class="act-btn" onclick="addExample('propyne')">Propino</button>
+    <button class="act-btn" onclick="addExample('butane')">Butano</button>
+    <button class="act-btn" onclick="addExample('hexane')">Hexano</button>
+    <button class="act-btn" onclick="addExample('butadiene')">Butadieno</button>
+    <button class="act-btn" onclick="addExample('cyclohexane')">Cicloexano</button>
+    <button class="act-btn" onclick="addExample('cyclopentane')">Ciclopentano</button>
+    <button class="act-btn danger" onclick="clearAll()">✕ Limpar</button>
+  </div>
+
+  <div class="info-row">
+    <div class="info-card">
+      <div class="ic-label">Carbonos</div>
+      <div class="ic-val" id="stat-c">0</div>
+    </div>
+    <div class="info-card">
+      <div class="ic-label">Hidrogênios</div>
+      <div class="ic-val" id="stat-h">0</div>
+    </div>
+    <div class="info-card">
+      <div class="ic-label">Lig. duplas</div>
+      <div class="ic-val" id="stat-d">0</div>
+    </div>
+    <div class="info-card">
+      <div class="ic-label">Lig. triplas</div>
+      <div class="ic-val" id="stat-t">0</div>
+    </div>
+    <div class="info-card">
+      <div class="ic-label">Grau insaturação</div>
+      <div class="ic-val" id="stat-dbu">0</div>
+    </div>
+    <div class="info-card">
+      <div class="ic-label">É cíclico?</div>
+      <div class="ic-val" id="stat-cyc">Não</div>
+    </div>
+  </div>
+</div>
+
+<footer>Simulação didática de química orgânica — Hidrocarbonetos IUPAC</footer>
+
+<script>
+const canvas = document.getElementById('mol-canvas');
+const ctx = canvas.getContext('2d');
+const ctxMenu = document.getElementById('ctxmenu');
+const ctxMenuTitle = document.getElementById('ctxmenu-title');
+const ctxAddSingle = document.getElementById('ctx-add-single');
+const ctxAddDouble = document.getElementById('ctx-add-double');
+const ctxAddTriple = document.getElementById('ctx-add-triple');
+const ctxDelete = document.getElementById('ctx-delete');
+const ctxCancel = document.getElementById('ctx-cancel');
+
+let atoms = [];
+let bonds = [];
+let history = [];
+let tool = 'add-c';
+let selected = null;
+let dragging = null;
+let dragOffset = { x: 0, y: 0 };
+let bondFirst = null;
+let W = 0, H = 340;
+
+const RADIUS = 19;
+const C_ATOM        = '#378ADD';
+const C_SEL         = '#F43F5E'; // Rose/Red for selection
+const C_MAIN_ATOM    = '#F59E0B'; // Amber for main chain
+const C_BRANCH_ATOM  = '#3B82F6'; // Blue for branches
+const C_SINGLE      = '#94A3B8'; // Slate for branch bonds
+const C_MAIN_BOND    = '#F59E0B'; // Amber for main chain bonds
+const C_DOUBLE      = '#3B6D11';
+const C_TRIPLE      = '#993C1D';
+
+// View (pan/zoom) + grid
+let viewScale = 1;
+let viewOffset = { x: 0, y: 0 };
+let showGrid = true;
+const GRID_SIZE = 24; // px (in world coordinates)
+
+function isDark() {
+  return matchMedia('(prefers-color-scheme: dark)').matches;
+}
+
+function hideCtxMenu() {
+  ctxMenu.style.display = 'none';
+  ctxMenu.dataset.atomId = '';
+}
+
+function showCtxMenu(atom) {
+  // Position the menu above the atom (not under the cursor)
+  const sp = worldToScreen({ x: atom.x, y: atom.y });
+
+  ctxMenu.style.display = 'block';
+  ctxMenu.style.visibility = 'hidden';
+  ctxMenu.style.left = '0px';
+  ctxMenu.style.top = '0px';
+  const mw = ctxMenu.offsetWidth || 200;
+  const mh = ctxMenu.offsetHeight || 180;
+  ctxMenu.style.visibility = 'visible';
+
+  const pad = 8;
+  const ox = Math.max(pad, Math.min(W - mw - pad, sp.x - mw / 2));
+  const oy = Math.max(pad, Math.min(H - mh - pad, sp.y - mh - 12));
+  ctxMenu.style.left = ox + 'px';
+  ctxMenu.style.top = oy + 'px';
+
+  ctxMenu.dataset.atomId = String(atom.id);
+  const h = calcH(atom);
+  ctxMenuTitle.textContent = `Opções do átomo (CH${h})`;
+}
+
+function getAtomByIdString(s) {
+  if (!s) return null;
+  // Atom ids are floats (Date.now() + Math.random()); avoid numeric round-trip issues.
+  return atoms.find(a => String(a.id) === String(s)) || null;
+}
+
+function resize() {
+  const rect = canvas.parentElement.getBoundingClientRect();
+  W = Math.max(rect.width, 320);
+  canvas.width = W;
+  canvas.height = H;
+  // Keep grid button state consistent on load/resize
+  document.getElementById('btn-grid')?.classList.toggle('active', showGrid);
+  hideCtxMenu();
+  draw();
+}
+
+function worldToScreen(p) {
+  return { x: p.x * viewScale + viewOffset.x, y: p.y * viewScale + viewOffset.y };
+}
+
+function screenToWorld(p) {
+  return { x: (p.x - viewOffset.x) / viewScale, y: (p.y - viewOffset.y) / viewScale };
+}
+
+function clampView() {
+  viewScale = Math.min(3.5, Math.max(0.5, viewScale));
+  if (!isFinite(viewScale) || viewScale <= 0) viewScale = 1;
+}
+
+function resetView() {
+  viewScale = 1;
+  viewOffset = { x: 0, y: 0 };
+  draw();
+}
+
+function toggleGrid() {
+  showGrid = !showGrid;
+  document.getElementById('btn-grid')?.classList.toggle('active', showGrid);
+  draw();
+}
+
+function zoomBy(factor, screenCenter) {
+  const center = screenCenter || { x: W / 2, y: H / 2 };
+  const before = screenToWorld(center);
+  viewScale *= factor;
+  clampView();
+  const after = worldToScreen(before);
+  viewOffset.x += center.x - after.x;
+  viewOffset.y += center.y - after.y;
+  draw();
+}
+
+/* ---------- Atom & Bond helpers ---------- */
+function addAtom(x, y) {
+  const a = { id: Date.now() + Math.random(), x, y };
+  atoms.push(a);
+  return a;
+}
+
+function addBond(a1, a2, order) {
+  const existing = bonds.find(b =>
+    (b.a1 === a1.id && b.a2 === a2.id) ||
+    (b.a2 === a1.id && b.a1 === a2.id)
+  );
+  if (existing) {
+    existing.order = Math.min(existing.order + 1, 3);
+    return existing;
+  }
+  const b = { id: Date.now() + Math.random(), a1: a1.id, a2: a2.id, order: order || 1 };
+  bonds.push(b);
+  return b;
+}
+
+function addAtomNear(baseAtom, order) {
+  const neighbors = getConnected(baseAtom);
+  let dir = { x: 1, y: 0 };
+  if (neighbors.length) {
+    const avg = neighbors.reduce((s, n) => ({ x: s.x + n.x, y: s.y + n.y }), { x: 0, y: 0 });
+    avg.x /= neighbors.length; avg.y /= neighbors.length;
+    dir = { x: baseAtom.x - avg.x, y: baseAtom.y - avg.y };
+  }
+  const len = Math.hypot(dir.x, dir.y) || 1;
+  dir.x /= len; dir.y /= len;
+
+  const sp = 66;
+  const nx = baseAtom.x + dir.x * sp;
+  const ny = baseAtom.y + dir.y * sp;
+
+  const a2 = addAtom(nx, ny);
+  addBond(baseAtom, a2, order);
+  selected = a2;
+  updateAll();
+}
+
+function removeAtom(a) {
+  bonds = bonds.filter(b => b.a1 !== a.id && b.a2 !== a.id);
+  atoms = atoms.filter(x => x !== a);
+}
+
+function removeBond(b) { bonds = bonds.filter(x => x !== b); }
+
+function getAtom(id) { return atoms.find(a => a.id === id); }
+
+function atomAt(x, y) {
+  return atoms.slice().reverse().find(a => Math.hypot(a.x - x, a.y - y) < RADIUS + 5);
+}
+
+function bondAt(x, y) {
+  return bonds.find(b => {
+    const a1 = getAtom(b.a1), a2 = getAtom(b.a2);
+    if (!a1 || !a2) return false;
+    const dx = a2.x - a1.x, dy = a2.y - a1.y;
+    const len = Math.hypot(dx, dy);
+    if (len < 1) return false;
+    const t = ((x - a1.x) * dx + (y - a1.y) * dy) / (len * len);
+    if (t < 0.15 || t > 0.85) return false;
+    const px = a1.x + t * dx - x, py = a1.y + t * dy - y;
+    return Math.hypot(px, py) < 9;
+  });
+}
+
+function getConnected(atom) {
+  return bonds
+    .filter(b => b.a1 === atom.id || b.a2 === atom.id)
+    .map(b => getAtom(b.a1 === atom.id ? b.a2 : b.a1))
+    .filter(Boolean);
+}
+
+function calcH(atom) {
+  const bs = bonds.filter(b => b.a1 === atom.id || b.a2 === atom.id);
+  const used = bs.reduce((s, b) => s + b.order, 0);
+  return Math.max(0, 4 - used);
+}
+
+/* ---------- Drawing ---------- */
+function drawGrid() {
+  if (!showGrid) return;
+  const dark = isDark();
+  const minor = dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
+  const major = dark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.10)';
+
+  const x0 = (-viewOffset.x) / viewScale;
+  const y0 = (-viewOffset.y) / viewScale;
+  const x1 = (W - viewOffset.x) / viewScale;
+  const y1 = (H - viewOffset.y) / viewScale;
+
+  const startX = Math.floor(x0 / GRID_SIZE) * GRID_SIZE;
+  const startY = Math.floor(y0 / GRID_SIZE) * GRID_SIZE;
+
+  ctx.save();
+  ctx.lineWidth = 1 / viewScale;
+
+  for (let x = startX, i = 0; x <= x1 + GRID_SIZE; x += GRID_SIZE, i++) {
+    ctx.strokeStyle = (Math.round(x / GRID_SIZE) % 5 === 0) ? major : minor;
+    ctx.beginPath();
+    ctx.moveTo(x, y0 - GRID_SIZE);
+    ctx.lineTo(x, y1 + GRID_SIZE);
+    ctx.stroke();
+  }
+  for (let y = startY, i = 0; y <= y1 + GRID_SIZE; y += GRID_SIZE, i++) {
+    ctx.strokeStyle = (Math.round(y / GRID_SIZE) % 5 === 0) ? major : minor;
+    ctx.beginPath();
+    ctx.moveTo(x0 - GRID_SIZE, y);
+    ctx.lineTo(x1 + GRID_SIZE, y);
+    ctx.stroke();
+  }
+
+  ctx.restore();
+}
+
+function draw() {
+  ctx.clearRect(0, 0, W, H);
+  const dark = isDark();
+  ctx.fillStyle = dark ? '#1e1e1c' : '#ffffff';
+  ctx.fillRect(0, 0, W, H);
+
+  ctx.save();
+  ctx.translate(viewOffset.x, viewOffset.y);
+  ctx.scale(viewScale, viewScale);
+
+  drawGrid();
+
+  bonds.forEach(b => {
+    const a1 = getAtom(b.a1), a2 = getAtom(b.a2);
+    if (a1 && a2) {
+      drawBond(a1, a2, b.order, b === selected, b.isMainChain);
+    }
+  });
+  atoms.forEach(a => {
+    drawAtom(a, a === selected || a.id === bondFirst, a.isMainChain);
+  });
+
+  ctx.restore();
+}
+
+function drawBond(a1, a2, order, sel, isMain) {
+  const dx = a2.x - a1.x, dy = a2.y - a1.y;
+  const len = Math.hypot(dx, dy);
+  if (len < 1) return;
+  const ux = dx / len, uy = dy / len;
+  const nx = -uy, ny = ux;
+  
+  let color = isMain ? C_MAIN_BOND : C_SINGLE;
+  if (sel) color = C_SEL;
+  else if (order === 2) color = C_DOUBLE;
+  else if (order === 3) color = C_TRIPLE;
+
+  const offsets = { 1: [0], 2: [-4.5, 4.5], 3: [-7, 0, 7] };
+  const os = offsets[order] || [0];
+  const s = RADIUS + 2;
+  const x1 = a1.x + ux * s, y1 = a1.y + uy * s;
+  const x2 = a2.x - ux * s, y2 = a2.y - uy * s;
+
+  ctx.save();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = (order === 1 ? 2.2 : 1.8) * (isMain ? 1.6 : 1);
+  ctx.lineCap = 'round';
+  os.forEach(o => {
+    ctx.beginPath();
+    ctx.moveTo(x1 + nx * o, y1 + ny * o);
+    ctx.lineTo(x2 + nx * o, y2 + ny * o);
+    ctx.stroke();
+  });
+  ctx.restore();
+}
+
+function drawAtom(a, highlight, isMain) {
+  const dark = isDark();
+  ctx.save();
+  if (highlight) {
+    ctx.beginPath(); ctx.arc(a.x, a.y, RADIUS + 6, 0, Math.PI * 2);
+    ctx.fillStyle = (highlight ? C_SEL : 'rgba(239,159,39,0.22)') + '33';
+    ctx.fill();
+  }
+  ctx.beginPath(); ctx.arc(a.x, a.y, RADIUS, 0, Math.PI * 2);
+  
+  let baseColor = isMain ? C_MAIN_ATOM : C_BRANCH_ATOM;
+  ctx.fillStyle = (highlight ? C_SEL : baseColor) + (dark ? 'cc' : 'dd');
+  ctx.fill();
+  
+  ctx.strokeStyle = highlight ? C_SEL : (isMain ? '#BA7517' : '#185FA5');
+  ctx.lineWidth = isMain ? 2.5 : 1.8;
+  ctx.stroke();
+
+  ctx.fillStyle = '#ffffff';
+  ctx.font = '700 13px system-ui, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('C', a.x, a.y - 3);
+
+  const h = calcH(a);
+  if (h > 0) {
+    ctx.font = '600 9px system-ui, sans-serif';
+    ctx.fillStyle = 'rgba(255,255,255,0.9)';
+    ctx.fillText('H' + h, a.x, a.y + 8);
+  }
+  ctx.restore();
+}
+
+/* ---------- Chemistry / Nomenclature ---------- */
+function countRings() {
+  return Math.max(0, bonds.length - atoms.length + 1);
+}
+function isCyclic() { return atoms.length >= 3 && countRings() >= 1; }
+
+function findLongestChain() {
+  return chooseMainChain();
+}
+
+function chainKey(chain) {
+  const fwd = chain.map(a => a.id).join('-');
+  const rev = [...chain].reverse().map(a => a.id).join('-');
+  return fwd < rev ? fwd : rev;
+}
+
+function getAllLongestChains() {
+  if (!atoms.length) return [];
+  let bestLen = 0;
+  const best = [];
+  const seen = new Set();
+
+  function dfs(path) {
+    const cur = path[path.length - 1];
+    const neighbors = getConnected(cur).filter(n => !path.includes(n));
+    if (!neighbors.length) {
+      const len = path.length;
+      if (len < bestLen) return;
+      const key = chainKey(path);
+      if (seen.has(key)) return;
+      seen.add(key);
+      if (len > bestLen) { bestLen = len; best.length = 0; }
+      best.push([...path]);
+      return;
+    }
+    neighbors.forEach(n => dfs([...path, n]));
+  }
+
+  atoms.forEach(a => dfs([a]));
+  return best;
+}
+
+const PREFIXES = ['', 'met', 'et', 'prop', 'but', 'pent', 'hex', 'hept', 'oct', 'non', 'dec',
+  'undec', 'dodec', 'tridec', 'tetradec', 'pentadec', 'hexadec', 'heptadec', 'octadec', 'nonadec', 'eicos'];
+
+const MULTIPLIERS = ['', '', 'di', 'tri', 'tetra', 'penta', 'hexa', 'hepta', 'octa', 'nona', 'deca'];
+
+function alkylNameFromCount(c) {
+  const p = PREFIXES[c] || (c + 'c');
+  return `${p}il`; // metil, etil, propil, ...
+}
+
+function getBranchAtoms(startAtom, chainSet) {
+  const out = [];
+  const stack = [startAtom];
+  const seen = new Set([startAtom.id]);
+  while (stack.length) {
+    const cur = stack.pop();
+    if (chainSet.has(cur.id)) continue;
+    out.push(cur);
+    getConnected(cur).forEach(n => {
+      if (seen.has(n.id) || chainSet.has(n.id)) return;
+      seen.add(n.id);
+      stack.push(n);
+    });
+  }
+  return out;
+}
+
+function branchIsLinear(branchAtoms) {
+  const branchIds = new Set(branchAtoms.map(a => a.id));
+  const degreesOk = branchAtoms.every(a => {
+    const d = getConnected(a).filter(n => branchIds.has(n.id)).length;
+    return d <= 2;
+  });
+  if (!degreesOk) return false;
+  const ends = branchAtoms.filter(a => getConnected(a).filter(n => branchIds.has(n.id)).length <= 1).length;
+  return ends >= 2 || branchAtoms.length === 1;
+}
+
+function substituentsForChain(chain) {
+  const chainSet = new Set(chain.map(a => a.id));
+  const subs = [];
+  chain.forEach((a, idx) => {
+    const loc = idx + 1;
+    const neighbors = getConnected(a).filter(n => !chainSet.has(n.id));
+    neighbors.forEach(n => {
+      const branchAtoms = getBranchAtoms(n, chainSet);
+      if (!branchAtoms.length) return;
+      const count = branchAtoms.length;
+      const baseName = alkylNameFromCount(count);
+      const linear = branchIsLinear(branchAtoms);
+      subs.push({ locant: loc, name: baseName, hint: linear ? `${baseName} (cadeia lateral)` : `${baseName} (ramificado)` });
+    });
+  });
+  return subs;
+}
+
+function compareLex(a, b) {
+  const n = Math.max(a.length, b.length);
+  for (let i = 0; i < n; i++) {
+    const av = a[i] ?? Infinity;
+    const bv = b[i] ?? Infinity;
+    if (av !== bv) return av - bv;
+  }
+  return 0;
+}
+
+function scoreNumbering(chain) {
+  const tripleLocants = bondLocantsInChain(chain, 3);
+  const doubleLocants = bondLocantsInChain(chain, 2);
+  const subs = substituentsForChain(chain);
+  const byName = new Map();
+  subs.forEach(s => {
+    if (!byName.has(s.name)) byName.set(s.name, []);
+    byName.get(s.name).push(s.locant);
+  });
+  const names = [...byName.keys()].sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  const flat = [...tripleLocants, ...doubleLocants];
+  names.forEach(n => {
+    byName.get(n).sort((x, y) => x - y).forEach(v => flat.push(v));
+  });
+  return { flat, subs, doubleLocants, tripleLocants };
+}
+
+function chooseMainChain() {
+  const candidates = getAllLongestChains();
+  if (!candidates.length) return [];
+  let best = candidates[0];
+  let bestScore = null;
+
+  function consider(chain) {
+    const { flat } = scoreNumbering(chain);
+    if (!bestScore || compareLex(flat, bestScore) < 0) {
+      bestScore = flat;
+      best = chain;
+    }
+  }
+
+  candidates.forEach(c => {
+    consider(c);
+    consider([...c].reverse());
+  });
+
+  return best;
+}
+
+function formatSubstituents(subs) {
+  if (!subs.length) return { text: '', decomp: [] };
+  const groups = new Map();
+  subs.forEach(s => {
+    if (!groups.has(s.name)) groups.set(s.name, { locants: [], hints: [] });
+    groups.get(s.name).locants.push(s.locant);
+    groups.get(s.name).hints.push(s.hint);
+  });
+
+  const parts = [];
+  const decomp = [];
+  [...groups.keys()].sort((a, b) => a.localeCompare(b, 'pt-BR')).forEach(name => {
+    const g = groups.get(name);
+    g.locants.sort((a, b) => a - b);
+    const mult = MULTIPLIERS[g.locants.length] || '';
+    const locTxt = g.locants.join(',');
+    const part = `${locTxt}-${mult}${name}`;
+    parts.push(part);
+    decomp.push({ text: part, kind: 'mod', meaning: `substituinte(s): ${g.hints.join('; ')}` });
+  });
+
+  return { text: parts.join('-') + '-', decomp };
+}
+
+function chainBonds(chain) {
+  let doubles = 0, triples = 0;
+  for (let i = 0; i < chain.length - 1; i++) {
+    const b = bonds.find(b =>
+      (b.a1 === chain[i].id && b.a2 === chain[i + 1].id) ||
+      (b.a2 === chain[i].id && b.a1 === chain[i + 1].id)
+    );
+    if (b) { if (b.order === 2) doubles++; if (b.order === 3) triples++; }
+  }
+  return { doubles, triples };
+}
+
+function bondLocantsInChain(chain, order) {
+  const locants = [];
+  for (let i = 0; i < chain.length - 1; i++) {
+    const b = bonds.find(b =>
+      (b.a1 === chain[i].id && b.a2 === chain[i + 1].id) ||
+      (b.a2 === chain[i].id && b.a1 === chain[i + 1].id)
+    );
+    if (b && b.order === order) locants.push(i + 1);
+  }
+  return locants;
+}
+
+function updateMainChainData() {
+  atoms.forEach(a => a.isMainChain = false);
+  bonds.forEach(b => b.isMainChain = false);
+  if (!atoms.length) return [];
+
+  const chain = chooseMainChain();
+  if (!chain || !chain.length) return [];
+
+  chain.forEach(a => a.isMainChain = true);
+  for (let i = 0; i < chain.length - 1; i++) {
+    const b = bonds.find(b => 
+      (b.a1 === chain[i].id && b.a2 === chain[i + 1].id) ||
+      (b.a2 === chain[i].id && b.a1 === chain[i + 1].id)
+    );
+    if (b) b.isMainChain = true;
+  }
+  return chain;
+}
+
+function iupacName() {
+  const chain = updateMainChainData();
+  if (!atoms.length) return { name: '—', formula: '', type: '', decomp: [] };
+
+  const n = atoms.length;
+  const cn = chain.length;
+  const prefix = PREFIXES[cn] || (cn + 'c');
+  const cyclic = isCyclic();
+  const allDoubles = bonds.filter(b => b.order === 2).length;
+  const allTriples = bonds.filter(b => b.order === 3).length;
+  const { doubles, triples } = chainBonds(chain);
+  const doubleLocants = bondLocantsInChain(chain, 2);
+  const tripleLocants = bondLocantsInChain(chain, 3);
+  const subs = (!cyclic && allDoubles >= 0 && allTriples >= 0) ? substituentsForChain(chain) : [];
+  const { text: subText, decomp: subDecomp } = formatSubstituents(subs);
+
+  /* Cicloalcano */
+  if (cyclic && allDoubles === 0 && allTriples === 0) {
+    const cp = PREFIXES[n] || (n + 'c');
+    return {
+      name: `ciclo${cp}ano`,
+      formula: `C${n}H${2 * n}`,
+      type: 'Cicloalcano',
+      decomp: [
+        { text: 'ciclo', kind: 'mod',    meaning: 'estrutura cíclica (anel)' },
+        { text: cp,      kind: 'prefix', meaning: `${n} carbonos` },
+        { text: 'an',    kind: 'infix',  meaning: 'apenas ligações simples C−C' },
+        { text: 'o',     kind: 'suffix', meaning: 'hidrocarboneto' },
+      ]
+    };
+  }
+
+  /* Alcino */
+  if (triples > 0) {
+    const h = Math.max(0, 2 * cn - 2);
+    const locTxt = tripleLocants.length ? `-${tripleLocants.join(',')}-` : '';
+    return {
+      name: `${subText}${prefix}${locTxt}ino`,
+      formula: `C${n}H${h}`,
+      type: 'Alcino',
+      decomp: [
+        ...subDecomp,
+        { text: prefix, kind: 'prefix', meaning: `${cn} carbonos na cadeia principal` },
+        ...(tripleLocants.length ? [{ text: tripleLocants.join(','), kind: 'mod', meaning: `posição(ões) da ligação tripla` }] : []),
+        { text: 'in',   kind: 'infix',  meaning: 'ligação tripla C≡C' },
+        { text: 'o',    kind: 'suffix', meaning: 'hidrocarboneto' },
+      ]
+    };
+  }
+
+  /* Alceno / Alcadieno */
+  if (doubles > 0) {
+    const di = doubles > 1 ? 'di' : '';
+    const h = Math.max(0, 2 * cn + 2 - 2 * doubles);
+    const type = doubles > 1 ? 'Alcadieno' : 'Alceno';
+    const locTxt = doubleLocants.length ? `-${doubleLocants.join(',')}-` : '';
+    const decomp = [
+      ...subDecomp,
+      { text: prefix, kind: 'prefix', meaning: `${cn} carbonos na cadeia principal` }
+    ];
+    if (doubleLocants.length) decomp.push({ text: doubleLocants.join(','), kind: 'mod', meaning: `posição(ões) da(s) ligação(ões) dupla(s)` });
+    if (doubles > 1) decomp.push({ text: 'di', kind: 'mod', meaning: `${doubles} ligações duplas` });
+    decomp.push({ text: 'en', kind: 'infix',  meaning: 'ligação dupla C=C' });
+    decomp.push({ text: 'o',  kind: 'suffix', meaning: 'hidrocarboneto' });
+    return { name: `${subText}${prefix}${locTxt}${di}eno`, formula: `C${n}H${h}`, type, decomp };
+  }
+
+  /* Alcano */
+  // Nomenclatura de alcanos ramificados (substituintes simples: metil/etil/propil...)
+  // Obs.: aqui a fórmula continua sendo a do hidrocarboneto correspondente (CnH2n+2).
+  if (!cyclic && allDoubles === 0 && allTriples === 0) {
+    const subs = substituentsForChain(chain);
+    if (subs.length) {
+      const parent = `${prefix}ano`;
+      const { text: subText, decomp: subDecomp } = formatSubstituents(subs);
+      return {
+        name: `${subText}${parent}`,
+        formula: `C${n}H${2 * n + 2}`,
+        type: 'Alcano (ramificado)',
+        decomp: [
+          ...subDecomp,
+          { text: prefix, kind: 'prefix', meaning: `${cn} carbonos na cadeia principal` },
+          { text: 'an',   kind: 'infix',  meaning: 'apenas ligações simples C−C' },
+          { text: 'o',    kind: 'suffix', meaning: 'hidrocarboneto' },
+        ]
+      };
+    }
+  }
+
+  return {
+    name: `${prefix}ano`,
+    formula: `C${n}H${2 * n + 2}`,
+    type: 'Alcano',
+    decomp: [
+      { text: prefix, kind: 'prefix', meaning: `${cn} carbonos na cadeia principal` },
+      { text: 'an',   kind: 'infix',  meaning: 'apenas ligações simples C−C' },
+      { text: 'o',    kind: 'suffix', meaning: 'hidrocarboneto' },
+    ]
+  };
+}
+
+/* ---------- UI Update ---------- */
+function updateUI() {
+  const { name, formula, type, decomp } = iupacName();
+  document.getElementById('iupac-name').textContent = name;
+  document.getElementById('mol-formula').textContent = formula || 'Fórmula molecular';
+
+  const badge = document.getElementById('type-badge');
+  badge.style.display = type ? 'inline-block' : 'none';
+  badge.textContent = type;
+
+  const kindClass = { prefix: 'p-prefix', infix: 'p-infix', suffix: 'p-suffix', mod: 'p-mod' };
+  const dr = document.getElementById('decomp-rows');
+  dr.innerHTML = '';
+
+  if (decomp.length) {
+    const row = document.createElement('div');
+    row.className = 'decomp-row';
+    decomp.forEach(d => {
+      const span = document.createElement('span');
+      span.className = 'decomp-part ' + (kindClass[d.kind] || '');
+      span.textContent = d.text;
+      span.title = d.meaning;
+      row.appendChild(span);
+    });
+    dr.appendChild(row);
+
+    decomp.forEach(d => {
+      const info = document.createElement('div');
+      info.className = 'decomp-info';
+      info.textContent = '▸ "' + d.text + '" = ' + d.meaning;
+      dr.appendChild(info);
+    });
+  } else {
+    dr.textContent = 'Adicione átomos para ver';
+  }
+
+  const totalH = atoms.reduce((s, a) => s + calcH(a), 0);
+  const doubles = bonds.filter(b => b.order === 2).length;
+  const triples = bonds.filter(b => b.order === 3).length;
+  const cyclic = isCyclic();
+  const dbu = doubles + 2 * triples + (cyclic ? 1 : 0);
+
+  document.getElementById('stat-c').textContent = atoms.length;
+  document.getElementById('stat-h').textContent = totalH;
+  document.getElementById('stat-d').textContent = doubles;
+  document.getElementById('stat-t').textContent = triples;
+  document.getElementById('stat-dbu').textContent = dbu;
+  document.getElementById('stat-cyc').textContent = cyclic ? 'Sim' : 'Não';
+
+  // Extra hint for context menu usage
+  const tip = document.getElementById('tip-msg');
+  if (tip && ctxMenu && ctxMenu.style.display !== 'none') {
+    // leave as-is while menu is open
+  }
+}
+
+function updateAll() { updateUI(); draw(); }
+
+/* ---------- Tools ---------- */
+function setTool(t) {
+  tool = t;
+  bondFirst = null;
+  selected = null;
+  ['add-c', 'single', 'double', 'triple', 'move', 'del'].forEach(id => {
+    document.getElementById('btn-' + id)?.classList.toggle('active', id === t);
+  });
+  const tips = {
+    'add-c':  'Clique no canvas para adicionar um carbono',
+    'single': 'Clique em dois átomos para criar/aumentar ligação',
+    'double': 'Clique em dois átomos para criar ligação dupla',
+    'triple': 'Clique em dois átomos para criar ligação tripla',
+    'move':   'Arraste um átomo para reposicioná-lo (arraste no vazio para mover a tela)',
+    'del':    'Clique em um átomo ou ligação para apagar'
+  };
+  document.getElementById('tip-msg').textContent = tips[t] || '';
+  draw();
+}
+
+/* ---------- History ---------- */
+function saveHistory() {
+  history.push({ atoms: JSON.parse(JSON.stringify(atoms)), bonds: JSON.parse(JSON.stringify(bonds)) });
+  if (history.length > 40) history.shift();
+}
+
+function doUndo() {
+  if (!history.length) return;
+  const s = history.pop();
+  atoms = s.atoms; bonds = s.bonds;
+  selected = null; bondFirst = null;
+  updateAll();
+}
+
+function clearAll() {
+  saveHistory(); atoms = []; bonds = [];
+  selected = null; bondFirst = null;
+  updateAll();
+}
+
+/* ---------- Examples ---------- */
+function addExample(name) {
+  saveHistory(); atoms = []; bonds = [];
+  const cx = W / 2, cy = H / 2, sp = 68;
+
+  if (name === 'methane') {
+    addAtom(cx, cy);
+
+  } else if (name === 'ethene') {
+    const a1 = addAtom(cx - sp / 2, cy);
+    const a2 = addAtom(cx + sp / 2, cy);
+    addBond(a1, a2, 2);
+
+  } else if (name === 'propyne') {
+    const a1 = addAtom(cx - sp, cy);
+    const a2 = addAtom(cx, cy);
+    const a3 = addAtom(cx + sp, cy);
+    addBond(a1, a2, 1);
+    addBond(a2, a3, 3);
+
+  } else if (name === 'butane') {
+    for (let i = 0; i < 4; i++) {
+      const a = addAtom(cx - sp * 1.5 + i * sp, cy + (i % 2 === 0 ? -16 : 16));
+      if (i > 0) addBond(atoms[atoms.length - 2], a, 1);
+    }
+
+  } else if (name === 'hexane') {
+    for (let i = 0; i < 6; i++) {
+      const a = addAtom(cx - sp * 2.5 + i * sp, cy + (i % 2 === 0 ? -18 : 18));
+      if (i > 0) addBond(atoms[atoms.length - 2], a, 1);
+    }
+
+  } else if (name === 'butadiene') {
+    for (let i = 0; i < 4; i++) {
+      const a = addAtom(cx - sp * 1.5 + i * sp, cy);
+      if (i > 0) addBond(atoms[atoms.length - 2], a, i % 2 === 1 ? 2 : 1);
+    }
+
+  } else if (name === 'cyclohexane') {
+    const r = 85;
+    const ring = [];
+    for (let i = 0; i < 6; i++) {
+      const angle = (i / 6) * Math.PI * 2 - Math.PI / 2;
+      ring.push(addAtom(cx + Math.cos(angle) * r, cy + Math.sin(angle) * r));
+    }
+    ring.forEach((a, i) => addBond(a, ring[(i + 1) % 6], 1));
+
+  } else if (name === 'cyclopentane') {
+    const r = 70;
+    const ring = [];
+    for (let i = 0; i < 5; i++) {
+      const angle = (i / 5) * Math.PI * 2 - Math.PI / 2;
+      ring.push(addAtom(cx + Math.cos(angle) * r, cy + Math.sin(angle) * r));
+    }
+    ring.forEach((a, i) => addBond(a, ring[(i + 1) % 5], 1));
+  }
+
+  selected = null; bondFirst = null;
+  updateAll();
+}
+
+/* ---------- Auto layout ---------- */
+function autoLayout() {
+  if (!atoms.length) return;
+  saveHistory();
+  const chain = updateMainChainData();
+  if (!chain || chain.length === 0) {
+    updateAll();
+    return;
+  }
+  
+  const sp = 68;
+  const startX = (W - sp * (chain.length - 1)) / 2;
+  const startY = H / 2;
+  
+  // Place main chain
+  chain.forEach((a, i) => {
+    a.x = startX + i * sp;
+    a.y = startY + (i % 2 === 0 ? -15 : 15);
+  });
+
+  // Place branches relatively to their parents
+  const placed = new Set(chain.map(a => a.id));
+  let changed = true;
+  while (changed) {
+    changed = false;
+    atoms.filter(a => !placed.has(a.id)).forEach(a => {
+      const neighbors = getConnected(a).filter(n => placed.has(n.id));
+      if (neighbors.length > 0) {
+        const parent = neighbors[0];
+        // Try to place branch away from other neighbors
+        const parentNeighbors = getConnected(parent);
+        let avgX = 0, avgY = 0;
+        parentNeighbors.filter(n => n.id !== a.id).forEach(n => {
+          avgX += n.x - parent.x;
+          avgY += n.y - parent.y;
+        });
+        
+        if (parentNeighbors.length <= 1) {
+           a.x = parent.x + sp * 0.8;
+           a.y = parent.y + sp * 0.8;
+        } else {
+           const mag = Math.hypot(avgX, avgY) || 1;
+           a.x = parent.x - (avgX / mag) * sp;
+           a.y = parent.y - (avgY / mag) * sp;
+        }
+        
+        placed.add(a.id);
+        changed = true;
+      }
+    });
+  }
+
+  // Final fallback for disconnected components
+  atoms.filter(a => !placed.has(a.id)).forEach((a, i) => {
+    a.x = 60 + (i % 5) * 70;
+    a.y = H - 60 - Math.floor(i / 5) * 70;
+  });
+
+  updateAll();
+}
+
+/* ---------- Events ---------- */
+function getPos(e) {
+  const rect = canvas.getBoundingClientRect();
+  const scale = canvas.width / rect.width;
+  const src = e.touches ? e.touches[0] : e;
+  const screen = { x: (src.clientX - rect.left) * scale, y: (src.clientY - rect.top) * scale };
+  return screenToWorld(screen);
+}
+
+canvas.addEventListener('mousedown', onDown);
+canvas.addEventListener('touchstart', e => { e.preventDefault(); onDown(e); }, { passive: false });
+canvas.addEventListener('mousemove', onMove);
+canvas.addEventListener('touchmove', e => { e.preventDefault(); onMove(e); }, { passive: false });
+canvas.addEventListener('mouseup', onUp);
+canvas.addEventListener('touchend', e => { e.preventDefault(); onUp(e); }, { passive: false });
+canvas.addEventListener('wheel', onWheel, { passive: false });
+canvas.addEventListener('contextmenu', onContextMenu);
+canvas.addEventListener('dblclick', onDoubleClick);
+// Extra hardening: some browsers still show native menu unless we also set the property handler.
+canvas.oncontextmenu = (e) => { onContextMenu(e); return false; };
+
+let panning = null; // { startScreen, startOffset, moved }
+let panningButton = -1;
+let pinch = null;   // { startDist, startScale, startMidScreen, startOffset }
+
+function getScreenPos(e) {
+  const rect = canvas.getBoundingClientRect();
+  const scale = canvas.width / rect.width;
+  const src = e.touches ? e.touches[0] : e;
+  return { x: (src.clientX - rect.left) * scale, y: (src.clientY - rect.top) * scale };
+}
+
+function getTwoTouchInfo(e) {
+  if (!e.touches || e.touches.length < 2) return null;
+  const rect = canvas.getBoundingClientRect();
+  const scale = canvas.width / rect.width;
+  const t1 = e.touches[0], t2 = e.touches[1];
+  const p1 = { x: (t1.clientX - rect.left) * scale, y: (t1.clientY - rect.top) * scale };
+  const p2 = { x: (t2.clientX - rect.left) * scale, y: (t2.clientY - rect.top) * scale };
+  const mid = { x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2 };
+  const dist = Math.hypot(p2.x - p1.x, p2.y - p1.y);
+  return { p1, p2, mid, dist };
+}
+
+function onDown(e) {
+  // Right-click (mouse) should open the atom options menu directly.
+  if (!e.touches && e.button === 2) { onContextMenu(e); return; }
+  hideCtxMenu();
+  if (e.touches && e.touches.length >= 2) {
+    const info = getTwoTouchInfo(e);
+    if (!info) return;
+    pinch = {
+      startDist: info.dist,
+      startScale: viewScale,
+      startMidScreen: info.mid,
+      startOffset: { ...viewOffset }
+    };
+    return;
+  }
+
+  const { x, y } = getPos(e);
+
+  if (e.button === 2) {
+    const sp = getScreenPos(e);
+    panning = { startScreen: sp, startOffset: { ...viewOffset }, moved: false };
+    panningButton = 2;
+    return;
+  }
+
+  if (tool === 'add-c') {
+    saveHistory();
+    selected = addAtom(x, y);
+    updateAll();
+
+  } else if (tool === 'move') {
+    const a = atomAt(x, y);
+    if (a) {
+      dragging = a; dragOffset = { x: a.x - x, y: a.y - y };
+    } else {
+      // Pan when clicking empty space with Move tool
+      const sp = getScreenPos(e);
+      panning = { startScreen: sp, startOffset: { ...viewOffset }, moved: false };
+      panningButton = 0;
+    }
+
+  } else if (tool === 'del') {
+    const a = atomAt(x, y);
+    if (a) { saveHistory(); removeAtom(a); selected = null; updateAll(); return; }
+    const b = bondAt(x, y);
+    if (b) { saveHistory(); removeBond(b); updateAll(); }
+
+  } else if (['single', 'double', 'triple'].includes(tool)) {
+    const a = atomAt(x, y);
+    if (!a) return;
+    if (!bondFirst) {
+      bondFirst = a.id;
+      selected = a;
+      draw();
+    } else if (bondFirst !== a.id) {
+      saveHistory();
+      const a1 = getAtom(bondFirst);
+      const order = tool === 'double' ? 2 : tool === 'triple' ? 3 : 1;
+      addBond(a1, a, order);
+      bondFirst = null; selected = null;
+      updateAll();
+    }
+  }
+}
+
+function onMove(e) {
+  if (pinch && e.touches && e.touches.length >= 2) {
+    const info = getTwoTouchInfo(e);
+    if (!info || pinch.startDist < 10) return;
+    const factor = info.dist / pinch.startDist;
+    const center = info.mid;
+    // Zoom around the pinch midpoint
+    const before = screenToWorld(center);
+    viewScale = pinch.startScale * factor;
+    clampView();
+    const after = worldToScreen(before);
+    viewOffset.x = pinch.startOffset.x + (center.x - after.x);
+    viewOffset.y = pinch.startOffset.y + (center.y - after.y);
+    draw();
+    return;
+  }
+
+  const { x, y } = getPos(e);
+  if (dragging && tool === 'move') {
+    dragging.x = x + dragOffset.x;
+    dragging.y = y + dragOffset.y;
+    updateAll();
+  } else if (panning) {
+    const sp = getScreenPos(e);
+    const dx = sp.x - panning.startScreen.x;
+    const dy = sp.y - panning.startScreen.y;
+    if (Math.hypot(dx, dy) > 5) panning.moved = true;
+    
+    viewOffset.x = panning.startOffset.x + dx;
+    viewOffset.y = panning.startOffset.y + dy;
+    draw();
+  }
+}
+
+function onUp() { dragging = null; panning = null; pinch = null; }
+
+function onWheel(e) {
+  e.preventDefault();
+  hideCtxMenu();
+  const sp = getScreenPos(e);
+  const delta = Math.sign(e.deltaY);
+  const factor = delta > 0 ? (1 / 1.12) : 1.12;
+  zoomBy(factor, sp);
+}
+
+function onContextMenu(e) {
+  e.preventDefault();
+  // If we were panning with right click, don't show menu
+  if (panning && panning.moved && panningButton === 2) return;
+  
+  const wp = getPos(e);
+  const atom = atomAt(wp.x, wp.y);
+  if (!atom) { hideCtxMenu(); return; }
+  showCtxMenu(atom);
+}
+
+function onDoubleClick(e) {
+  const wp = getPos(e);
+  const atom = atomAt(wp.x, wp.y);
+  if (!atom) return;
+  hideCtxMenu();
+  showCtxMenu(atom);
+}
+
+// Context menu actions
+ctxAddSingle.addEventListener('click', () => {
+  const a = getAtomByIdString(ctxMenu.dataset.atomId);
+  if (!a) return hideCtxMenu();
+  saveHistory();
+  addAtomNear(a, 1);
+  hideCtxMenu();
+});
+ctxAddDouble.addEventListener('click', () => {
+  const a = getAtomByIdString(ctxMenu.dataset.atomId);
+  if (!a) return hideCtxMenu();
+  saveHistory();
+  addAtomNear(a, 2);
+  hideCtxMenu();
+});
+ctxAddTriple.addEventListener('click', () => {
+  const a = getAtomByIdString(ctxMenu.dataset.atomId);
+  if (!a) return hideCtxMenu();
+  saveHistory();
+  addAtomNear(a, 3);
+  hideCtxMenu();
+});
+ctxDelete.addEventListener('click', () => {
+  const a = getAtomByIdString(ctxMenu.dataset.atomId);
+  if (!a) return hideCtxMenu();
+  saveHistory();
+  removeAtom(a);
+  selected = null; bondFirst = null;
+  updateAll();
+  hideCtxMenu();
+});
+ctxCancel.addEventListener('click', hideCtxMenu);
+window.addEventListener('keydown', (e) => { if (e.key === 'Escape') hideCtxMenu(); });
+window.addEventListener('mousedown', (e) => {
+  if (ctxMenu.style.display !== 'none' && !ctxMenu.contains(e.target)) hideCtxMenu();
+});
+
+/* ---------- Init ---------- */
+window.addEventListener('resize', resize);
+resize();
+addExample('butane');
+</script>
+</body>
+</html>
