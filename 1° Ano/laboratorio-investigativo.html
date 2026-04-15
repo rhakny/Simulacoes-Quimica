@@ -208,12 +208,20 @@
 
             .panel { 
                 display: none; 
-                height: calc(100vh - 120px); /* Garante que caiba entre o topo e a nav */
+                height: calc(100vh - 120px); 
                 overflow: hidden;
+                background: var(--bg-deep); /* Fundo sólido para cobrir o lab */
             }
             .panel.active { display: flex; animation: panelFade 0.4s ease; }
 
-            .workstation { height: 100%; justify-content: flex-start; margin-top: 40px; }
+            .workstation { 
+                display: none; 
+                height: 100%; 
+                padding: 0; 
+                justify-content: flex-start; 
+                margin-top: 40px; 
+            }
+            .workstation.active { display: flex; animation: panelFade 0.4s ease; }
             .workstation.hidden { display: none; }
 
             .beaker-container { width: 100%; max-width: 320px; height: 380px; margin-bottom: 20px; }
@@ -503,18 +511,27 @@
         }
 
         function switchTab(tab, btn) {
-            document.querySelectorAll('.panel, .workstation').forEach(el => el.classList.remove('active'));
+            // Remove active de todos
+            document.querySelectorAll('.panel, .workstation').forEach(el => {
+                el.classList.remove('active');
+                el.style.display = 'none';
+            });
             document.querySelectorAll('.mb-nav-link').forEach(el => el.classList.remove('active'));
             
             if (btn) btn.classList.add('active');
             else {
-                const mapping = { inventory: 0, lab: 1, tools: 2 };
-                document.querySelectorAll('.mb-nav-link')[mapping[tab]].classList.add('active');
+                const navLinks = document.querySelectorAll('.mb-nav-link');
+                if (tab === 'inventory') navLinks[0].classList.add('active');
+                if (tab === 'lab') navLinks[1].classList.add('active');
+                if (tab === 'tools') navLinks[2].classList.add('active');
             }
 
-            if (tab === 'lab') document.getElementById('workstation-view').classList.add('active');
-            else if (tab === 'inventory') document.getElementById('panel-inventory').classList.add('active');
-            else if (tab === 'tools') document.getElementById('panel-tools').classList.add('active');
+            const target = tab === 'lab' ? 'workstation-view' : (tab === 'inventory' ? 'panel-inventory' : 'panel-tools');
+            const targetEl = document.getElementById(target);
+            targetEl.classList.add('active');
+            targetEl.style.display = 'flex';
+            
+            lucide.createIcons();
         }
 
         function resetLab() {
