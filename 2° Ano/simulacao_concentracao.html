@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Laboratório de Soluções | Concentração e Diluição</title>
+    <meta name="description" content="Simulador interativo de química para estudo de concentração e diluição de soluções. Calcule C=m/V e experimente a Lei da Diluição em tempo real.">
+    <!-- Open Graph -->
+    <meta property="og:title" content="Laboratório de Soluções | Concentração e Diluição">
+    <meta property="og:description" content="Simule misturas químicas e calcule concentrações em tempo real.">
+    <meta property="og:type" content="website">
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -69,6 +74,29 @@
             background: var(--accent-cyan); border-radius: 50%;
             box-shadow: 0 0 15px var(--accent-cyan);
         }
+
+        /* --- MOBILE NAVIGATION --- */
+        .mobile-nav {
+            display: none;
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            background: var(--panel-glass);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid var(--border-glass);
+            padding: 12px 24px 34px 24px; /* extra bottom padding for iOS home bar */
+            z-index: 1000;
+            justify-content: space-around;
+            align-items: center;
+        }
+
+        .mb-nav-link {
+            display: flex; flex-direction: column; align-items: center; gap: 4px;
+            color: var(--text-dim); font-size: 0.6rem; font-weight: 700; text-transform: uppercase;
+            cursor: pointer; transition: all 0.3s;
+        }
+
+        .mb-nav-link i { width: 20px; height: 20px; }
+        .mb-nav-link.active { color: var(--accent-cyan); }
 
         /* --- SOLUTE SHELF --- */
         .scroll-area { overflow-y: auto; flex-grow: 1; padding-right: 12px; }
@@ -215,8 +243,37 @@
             position: fixed; top: 30px; left: 50%; transform: translateX(-50%);
             background: var(--accent-cyan); color: var(--bg-deep);
             padding: 14px 28px; border-radius: 40px; font-weight: 800;
-            z-index: 1000; box-shadow: 0 15px 40px rgba(0,242,255,0.3);
+            z-index: 2000; box-shadow: 0 15px 40px rgba(0,242,255,0.3);
             display: flex; align-items: center; gap: 12px;
+        }
+
+        /* --- RESPONSIVE QUERIES --- */
+        @media (max-width: 1100px) {
+            .app-container {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto 1fr auto;
+                height: 100vh; overflow: hidden;
+                padding: 16px; gap: 16px;
+            }
+
+            body { overflow: hidden; }
+
+            .panel { display: none; height: 100%; border-radius: 24px; padding: 20px; }
+            .panel.active { display: flex; animation: panelFade 0.4s ease; }
+
+            .workstation { height: 100%; padding: 0; justify-content: flex-start; margin-top: 40px; }
+            .workstation.hidden { display: none; }
+
+            .beaker-container { width: 100%; max-width: 320px; height: 380px; margin-bottom: 20px; }
+            .hud-overlay { top: 0px; right: 0; left: 0; width: 100%; min-width: unset; padding: 12px; border-radius: 16px; }
+            .stat-value { font-size: 1.2rem; }
+
+            .mobile-nav { display: flex; }
+        }
+
+        @keyframes panelFade {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
     </style>
@@ -224,8 +281,9 @@
 <body>
 
     <div class="app-container">
+        <h1 style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); border: 0;">Laboratório de Simulação: Concentração e Diluição</h1>
         <!-- SHELF: SOLUTOS -->
-        <section class="panel">
+        <section class="panel" id="panel-inventory">
             <div class="panel-title">Estoque de Solutos</div>
                 <div class="scroll-area" id="solute-shelf">
                 <!-- Injected via JS -->
@@ -237,22 +295,22 @@
         </section>
 
         <!-- MAIN LAB VISUAL -->
-        <section class="workstation">
+        <section class="workstation active" id="workstation-view">
             <div class="hud-overlay" id="hud">
                 <div class="stat-group">
                     <div class="stat-label">Concentração Atual</div>
                     <div class="stat-value" id="conc-val">0.00 <small>g/L</small></div>
                 </div>
-                <div style="margin-top: 15px; display: flex; justify-content: space-between; align-items: flex-end;">
+                <div style="margin-top: 10px; display: flex; justify-content: space-between; align-items: flex-end;">
                     <div>
                         <div class="stat-label">Volume</div>
-                        <div style="font-family:'JetBrains Mono'; font-size: 1.1rem; color: white;">
+                        <div style="font-family:'JetBrains Mono'; font-size: 1rem; color: white;">
                              <span id="vol-stat">0.50</span>L
                         </div>
                     </div>
                     <div style="text-align: right;">
                         <div class="stat-label">Massa</div>
-                        <div style="font-family:'JetBrains Mono'; font-size: 1.1rem; color: white;">
+                        <div style="font-family:'JetBrains Mono'; font-size: 1rem; color: white;">
                             <span id="mass-stat">0</span>g
                         </div>
                     </div>
@@ -271,7 +329,7 @@
         </section>
 
         <!-- TOOLS & DILUTION -->
-        <section class="panel">
+        <section class="panel" id="panel-tools">
             <div class="panel-title">Instrumentação</div>
             
             <div class="scroll-area">
@@ -308,16 +366,16 @@
                         <div class="formula-display">C₁V₁ = C₂V₂</div>
                         
                         <button class="btn-main" style="background: rgba(0, 242, 255, 0.1); border: 1px solid var(--accent-cyan); color: var(--accent-cyan); margin-top: 10px; padding: 10px; font-size: 0.75rem;" onclick="snapshotState()">
-                            Fixar como Solução Inicial (C₁, V₁)
+                            Fixar Inicial (C₁, V₁)
                         </button>
 
                         <div class="snap-state">
                             <div class="snap-item">
-                                <div class="snap-label">C₁ Inicial</div>
+                                <div class="snap-label">C₁</div>
                                 <div class="snap-val" id="snap-c1">--</div>
                             </div>
                             <div class="snap-item">
-                                <div class="snap-label">V₁ Inicial</div>
+                                <div class="snap-label">V₁</div>
                                 <div class="snap-val" id="snap-v1">--</div>
                             </div>
                         </div>
@@ -330,6 +388,22 @@
             </button>
         </section>
     </div>
+
+    <!-- Navegação Mobile -->
+    <nav class="mobile-nav">
+        <label class="mb-nav-link" onclick="showView('inventory')" id="nav-inventory">
+            <i data-lucide="beaker"></i>
+            <span>Estoque</span>
+        </label>
+        <label class="mb-nav-link active" onclick="showView('lab')" id="nav-lab">
+            <i data-lucide="eye"></i>
+            <span>Lab</span>
+        </label>
+        <label class="mb-nav-link" onclick="showView('tools')" id="nav-tools">
+            <i data-lucide="wrench"></i>
+            <span>Ferramentas</span>
+        </label>
+    </nav>
 
     <script>
         const SOLUTES = [
@@ -362,6 +436,35 @@
             lucide.createIcons();
             updateStats();
             requestAnimationFrame(loop);
+            
+            window.addEventListener('resize', handleResize);
+        }
+
+        function handleResize() {
+            w = canvas.parentElement.clientWidth; h = canvas.parentElement.clientHeight;
+            canvas.width = w; canvas.height = h;
+        }
+
+        function showView(view) {
+            const panels = ['inventory', 'tools'];
+            const workstation = document.getElementById('workstation-view');
+            const navItems = ['nav-inventory', 'nav-lab', 'nav-tools'];
+
+            navItems.forEach(id => document.getElementById(id).classList.remove('active'));
+            document.getElementById(`nav-${view}`).classList.add('active');
+
+            if (view === 'lab') {
+                workstation.classList.remove('hidden');
+                panels.forEach(p => document.getElementById(`panel-${p}`).classList.remove('active'));
+            } else {
+                workstation.classList.add('hidden');
+                panels.forEach(p => {
+                    const el = document.getElementById(`panel-${p}`);
+                    if (p === view) el.classList.add('active');
+                    else el.classList.remove('active');
+                });
+            }
+            handleResize();
         }
 
         function buildShelf() {
@@ -558,10 +661,25 @@
 
         function notify(msg) {
             const t = document.createElement('div'); t.className = 'toast';
+            t.style.cssText = "position:fixed; top:30px; left:50%; transform:translateX(-50%); background:var(--accent-cyan); color:var(--bg-deep); padding:14px 28px; border-radius:40px; font-weight:800; z-index:2000; box-shadow:0 15px 40px rgba(0,242,255,0.3);";
             t.innerHTML = `<i data-lucide="zap"></i> ${msg}`; document.body.appendChild(t);
             lucide.createIcons();
-            gsap.from(t, { y: -50, opacity: 0, duration: 0.5, ease: "back.out" });
-            setTimeout(() => gsap.to(t, { opacity: 0, scale: 0.9, onComplete: () => t.remove() }), 3000);
+            
+            const anim = gsap.from(t, { 
+                y: -40, opacity: 0, duration: 0.5, ease: "power2.out",
+                // Reduced motion check
+                ...(window.matchMedia('(prefers-reduced-motion: reduce)').matches ? { y: 0, scale: 0.9 } : {})
+            });
+
+            setTimeout(() => {
+                gsap.to(t, { 
+                    opacity: 0, 
+                    onComplete: () => {
+                        anim.kill();
+                        t.remove();
+                    } 
+                });
+            }, 2500);
         }
 
         window.onload = init;

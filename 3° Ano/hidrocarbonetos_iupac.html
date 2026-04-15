@@ -1,9 +1,14 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Simulador de Hidrocarbonetos IUPAC</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Construtor de Hidrocarbonetos | Nomenclatura IUPAC Interativa</title>
+  <meta name="description" content="Aprenda nomenclatura IUPAC de hidrocarbonetos de forma interativa. Construa moléculas, identifique cadeias principais e veja a decomposição do nome em tempo real.">
+  <!-- Open Graph -->
+  <meta property="og:title" content="Construtor de Hidrocarbonetos | Nomenclatura IUPAC Interativa">
+  <meta property="og:description" content="Monte moléculas orgânicas e aprenda IUPAC na prática.">
+  <meta property="og:type" content="website">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -20,6 +25,7 @@
     --info-text: #185fa5;
     --radius-md: 8px;
     --radius-lg: 12px;
+    --accent: #378ADD;
   }
   @media (prefers-color-scheme: dark) {
     :root {
@@ -317,6 +323,46 @@
     color: var(--text3);
     margin-top: 1.5rem;
   }
+
+  /* --- RESPONSIVE ADJUSTMENTS --- */
+  @media (max-width: 768px) {
+    body { padding: 1rem 0.5rem; }
+    
+    .header-row { flex-direction: column; align-items: stretch; }
+    .name-display, .decomp-panel { min-width: 100%; }
+    
+    .tools-row { 
+        display: grid; 
+        grid-template-columns: repeat(4, 1fr); 
+        gap: 6px; 
+    }
+    
+    .tool-btn { 
+        min-width: unset; 
+        padding: 6px 4px; 
+        font-size: 10px; 
+    }
+    
+    .tool-btn .icon { font-size: 15px; }
+
+    .actions-row { 
+        justify-content: center; 
+        gap: 6px;
+    }
+    
+    .act-btn { 
+        padding: 6px 10px; 
+        font-size: 11px; 
+    }
+
+    .info-row {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+    
+    .examples-label { width: 100%; text-align: center; margin-bottom: 4px; }
+  }
 </style>
 </head>
 <body>
@@ -344,28 +390,28 @@
   </div>
 
   <div class="tools-row">
-    <button class="tool-btn active" id="btn-add-c" onclick="setTool('add-c')">
+    <button class="tool-btn active" id="btn-add-c" onclick="setTool('add-c')" aria-label="Adicionar Carbono">
       <span class="icon">C</span><span>Carbono</span>
     </button>
-    <button class="tool-btn" id="btn-single" onclick="setTool('single')">
+    <button class="tool-btn" id="btn-single" onclick="setTool('single')" aria-label="Ligação Simples">
       <span class="icon">—</span><span>Simples</span>
     </button>
-    <button class="tool-btn" id="btn-double" onclick="setTool('double')">
+    <button class="tool-btn" id="btn-double" onclick="setTool('double')" aria-label="Ligação Dupla">
       <span class="icon">=</span><span>Dupla</span>
     </button>
-    <button class="tool-btn" id="btn-triple" onclick="setTool('triple')">
+    <button class="tool-btn" id="btn-triple" onclick="setTool('triple')" aria-label="Ligação Tripla">
       <span class="icon">≡</span><span>Tripla</span>
     </button>
-    <button class="tool-btn" id="btn-move" onclick="setTool('move')">
+    <button class="tool-btn" id="btn-move" onclick="setTool('move')" aria-label="Mover">
       <span class="icon">✥</span><span>Mover</span>
     </button>
-    <button class="tool-btn" id="btn-del" onclick="setTool('del')">
+    <button class="tool-btn" id="btn-del" onclick="setTool('del')" aria-label="Apagar">
       <span class="icon">✕</span><span>Apagar</span>
     </button>
-    <button class="tool-btn" id="btn-grid" onclick="toggleGrid()">
+    <button class="tool-btn" id="btn-grid" onclick="toggleGrid()" aria-label="Alternar Grade">
       <span class="icon">▦</span><span>Grade</span>
     </button>
-    <button class="tool-btn" id="btn-zoom-out" onclick="zoomBy(1 / 1.2)">
+    <button class="tool-btn" id="btn-zoom-out" onclick="zoomBy(1 / 1.2)" aria-label="Zoom Out">
       <span class="icon">−</span><span>Zoom</span>
     </button>
     <button class="tool-btn" id="btn-zoom-in" onclick="zoomBy(1.2)">
@@ -513,7 +559,9 @@ function getAtomByIdString(s) {
 
 function resize() {
   const rect = canvas.parentElement.getBoundingClientRect();
-  W = Math.max(rect.width, 320);
+  W = rect.width;
+  // Dynamic height for mobile
+  H = window.innerWidth < 768 ? 260 : 340;
   canvas.width = W;
   canvas.height = H;
   // Keep grid button state consistent on load/resize

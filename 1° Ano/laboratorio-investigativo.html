@@ -2,8 +2,12 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Laboratório de Misturas | Inteligência Científica</title>
+    <title>Laboratório Investigativo | Separação de Misturas</title>
+    <meta name="description" content="Desvende os segredos das misturas químicas neste laboratório virtual. Pratique filtração, destilação, decantação e muito mais.">
+    <!-- Open Graph -->
+    <meta property="og:title" content="Laboratório Investigativo | Separação de Misturas">
+    <meta property="og:description" content="Laboratório virtual avançado para separação de misturas.">
+    <meta property="og:type" content="website">
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -157,18 +161,67 @@
 
 
 
+        /* --- MOBILE NAVIGATION --- */
+        .mobile-nav {
+            display: none;
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            background: var(--panel-glass);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid var(--border-glass);
+            padding: 12px 24px 34px 24px;
+            z-index: 1000;
+            justify-content: space-around;
+            align-items: center;
+        }
+
+        .mb-nav-link {
+            display: flex; flex-direction: column; align-items: center; gap: 4px;
+            color: var(--text-dim); font-size: 0.6rem; font-weight: 700; text-transform: uppercase;
+            cursor: pointer; transition: all 0.3s;
+        }
+
+        .mb-nav-link i { width: 20px; height: 20px; }
+        .mb-nav-link.active { color: var(--accent-cyan); }
+
+        /* --- RESPONSIVE QUERIES --- */
+        @media (max-width: 1100px) {
+            .app-container {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto 1fr auto;
+                height: 100vh; overflow: hidden;
+                padding: 16px; gap: 16px;
+            }
+
+            .panel { display: none; height: 100%; border-radius: 24px; padding: 20px; }
+            .panel.active { display: flex; animation: panelFade 0.4s ease; }
+
+            .workstation { height: 100%; padding: 0; justify-content: flex-start; margin-top: 20px; }
+            .workstation.hidden { display: none; }
+
+            .beaker-container { width: 100%; max-width: 300px; height: 380px; margin-bottom: 20px; }
+            #mixture-title { font-size: 1.4rem; }
+
+            .mobile-nav { display: flex; }
+        }
+
+        @keyframes panelFade {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         /* Scrollbars */
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: var(--accent-cyan); }
-
     </style>
 </head>
 <body>
 
     <div class="app-container">
+        <h1 style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); border: 0;">Laboratório Investigativo: Separação de Misturas</h1>
         <!-- MATERIAIS -->
-        <section class="panel">
+        <section class="panel" id="panel-reagents">
             <div class="panel-title">Bancada de Reagentes</div>
             <div class="scroll-area" id="shelf"></div>
             <button class="action-btn" style="margin-top: 15px; border-color: var(--accent-rose); color: var(--accent-rose);" onclick="resetBeaker()">
@@ -177,20 +230,20 @@
         </section>
 
         <!-- BÉQUER -->
-        <section class="workstation">
+        <section class="workstation active" id="workstation-view">
             <div class="beaker-container">
                 <div class="beaker-glass"></div>
                 <canvas id="main-canvas"></canvas>
             </div>
             <div style="text-align: center;">
-                <h2 id="mixture-title" style="font-size: 1.8rem;">Vazio</h2>
+                <h2 id="mixture-title" style="font-size: 1.6rem;">Vazio</h2>
                 <div id="auto-classification"></div>
-                <p id="mixture-details" style="color: var(--text-dim); margin-top: 10px; font-size: 0.9rem;"></p>
+                <p id="mixture-details" style="color: var(--text-dim); margin-top: 10px; font-size: 0.85rem;"></p>
             </div>
         </section>
 
         <!-- FERRAMENTAS -->
-        <section class="panel">
+        <section class="panel" id="panel-tools">
             <div class="panel-title">Investigação Avançada</div>
             <div class="tool-tabs">
                 <button class="tab-btn active" onclick="setTab('sep')">SEPARAÇÃO</button>
@@ -210,13 +263,27 @@
                 <textarea id="notes" placeholder="Descreva os fenômenos observados..." style="flex-grow: 1; background: transparent; border: 1px solid var(--border-glass); border-radius: 16px; padding: 15px; color: white; resize: none;"></textarea>
             </div>
 
-
-
             <button id="challenge-btn" class="action-btn" style="margin-top: 15px; background: var(--accent-emerald); color: var(--bg-deep); font-weight: 700; justify-content: center;" onclick="startChallenge()">
                 <i data-lucide="target" style="color: var(--bg-deep)"></i> MODO SUGESTIVO
             </button>
         </section>
     </div>
+
+    <!-- Navegação Mobile -->
+    <nav class="mobile-nav">
+        <label class="mb-nav-link" onclick="showView('reagents')" id="nav-reagents">
+            <i data-lucide="database"></i>
+            <span>Reagentes</span>
+        </label>
+        <label class="mb-nav-link active" onclick="showView('lab')" id="nav-lab">
+            <i data-lucide="eye"></i>
+            <span>Lab</span>
+        </label>
+        <label class="mb-nav-link" onclick="showView('tools')" id="nav-tools">
+            <i data-lucide="wrench"></i>
+            <span>Ferramentas</span>
+        </label>
+    </nav>
 
     <script>
         const SUBSTANCES = [
@@ -285,6 +352,35 @@
             buildShelf();
             lucide.createIcons();
             requestAnimationFrame(loop);
+
+            window.addEventListener('resize', handleResize);
+        }
+
+        function handleResize() {
+            w = canvas.parentElement.clientWidth; h = canvas.parentElement.clientHeight;
+            canvas.width = w; canvas.height = h;
+        }
+
+        function showView(view) {
+            const panels = ['reagents', 'tools'];
+            const workstation = document.getElementById('workstation-view');
+            const navItems = ['nav-reagents', 'nav-lab', 'nav-tools'];
+
+            navItems.forEach(id => document.getElementById(id).classList.remove('active'));
+            document.getElementById(`nav-${view}`).classList.add('active');
+
+            if (view === 'lab') {
+                workstation.classList.remove('hidden');
+                panels.forEach(p => document.getElementById(`panel-${p}`).classList.remove('active'));
+            } else {
+                workstation.classList.add('hidden');
+                panels.forEach(p => {
+                    const el = document.getElementById(`panel-${p}`);
+                    if (p === view) el.classList.add('active');
+                    else el.classList.remove('active');
+                });
+            }
+            handleResize();
         }
 
         function buildShelf() {
@@ -446,8 +542,23 @@
             t.style.cssText = "position:fixed; top:20px; left:50%; transform:translateX(-50%); background:var(--accent-cyan); color:var(--bg-deep); padding:12px 24px; border-radius:30px; font-weight:700; z-index:10000; box-shadow:0 10px 30px rgba(0,242,255,0.3);";
             t.innerHTML = `<i data-lucide="zap"></i> ${msg}`; document.body.appendChild(t);
             lucide.createIcons();
-            gsap.from(t, { y: -40, opacity: 0 });
-            setTimeout(() => gsap.to(t, { opacity: 0, onComplete: () => t.remove() }), 2500);
+            
+            const anim = gsap.from(t, { 
+                y: -40, opacity: 0, 
+                duration: 0.5, 
+                ease: "power2.out",
+                ...(window.matchMedia('(prefers-reduced-motion: reduce)').matches ? { y: 0, scale: 0.9 } : {})
+            });
+
+            setTimeout(() => {
+                gsap.to(t, { 
+                    opacity: 0, 
+                    onComplete: () => {
+                        anim.kill();
+                        t.remove();
+                    } 
+                });
+            }, 2500);
         }
 
         window.onload = init;
