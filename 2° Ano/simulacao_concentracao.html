@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Laboratório de Soluções | Concentração e Diluição</title>
-    <meta name="description" content="Simulador interativo de química para estudo de concentração e diluição de soluções. Calcule C=m/V e experimente a Lei da Diluição em tempo real.">
+    <meta name="description"
+        content="Simulador interativo de química para estudo de concentração e diluição de soluções. Calcule C=m/V e experimente a Lei da Diluição em tempo real.">
     <!-- Open Graph -->
     <meta property="og:title" content="Laboratório de Soluções | Concentração e Diluição">
     <meta property="og:description" content="Simule misturas químicas e calcule concentrações em tempo real.">
@@ -12,7 +14,9 @@
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
     <!-- Scripts Externos -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -30,7 +34,12 @@
             --glass-bright: rgba(255, 255, 255, 0.03);
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
 
         body {
             font-family: 'Outfit', sans-serif;
@@ -39,7 +48,7 @@
             overflow: hidden;
             height: 100vh;
             display: flex;
-            background-image: 
+            background-image:
                 radial-gradient(circle at 10% 10%, rgba(0, 242, 255, 0.03) 0%, transparent 50%),
                 radial-gradient(circle at 90% 90%, rgba(0, 255, 157, 0.03) 0%, transparent 50%);
         }
@@ -47,8 +56,10 @@
         .app-container {
             display: grid;
             grid-template-columns: 320px 1fr 350px;
-            width: 100vw; height: 100vh;
-            padding: 24px; gap: 24px;
+            width: 100vw;
+            height: 100vh;
+            padding: 24px;
+            gap: 24px;
         }
 
         .panel {
@@ -56,22 +67,33 @@
             backdrop-filter: blur(20px);
             border: 1px solid var(--border-glass);
             border-radius: 32px;
-            display: flex; flex-direction: column;
-            padding: 28px; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+            padding: 28px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
             overflow: hidden;
             position: relative;
         }
 
         .panel-title {
-            font-size: 0.7rem; text-transform: uppercase;
-            color: var(--accent-cyan); letter-spacing: 2.5px;
-            margin-bottom: 24px; display: flex; align-items: center; gap: 10px;
-            flex-shrink: 0; font-weight: 800;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            color: var(--accent-cyan);
+            letter-spacing: 2.5px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+            font-weight: 800;
         }
 
         .panel-title::before {
-            content: ''; width: 6px; height: 6px;
-            background: var(--accent-cyan); border-radius: 50%;
+            content: '';
+            width: 6px;
+            height: 6px;
+            background: var(--accent-cyan);
+            border-radius: 50%;
             box-shadow: 0 0 15px var(--accent-cyan);
         }
 
@@ -79,43 +101,71 @@
         .mobile-nav {
             display: none;
             position: fixed;
-            bottom: 0; left: 0; right: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
             background: var(--panel-glass);
             backdrop-filter: blur(20px);
             border-top: 1px solid var(--border-glass);
-            padding: 12px 24px 34px 24px; /* extra bottom padding for iOS home bar */
+            padding: 12px 24px 34px 24px;
+            /* extra bottom padding for iOS home bar */
             z-index: 1000;
             justify-content: space-around;
             align-items: center;
         }
 
         .mb-nav-link {
-            display: flex; flex-direction: column; align-items: center; gap: 4px;
-            color: var(--text-dim); font-size: 0.6rem; font-weight: 700; text-transform: uppercase;
-            cursor: pointer; transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            color: var(--text-dim);
+            font-size: 0.6rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.3s;
         }
 
-        .mb-nav-link i { width: 20px; height: 20px; }
-        .mb-nav-link.active { color: var(--accent-cyan); }
+        .mb-nav-link i {
+            width: 20px;
+            height: 20px;
+        }
+
+        .mb-nav-link.active {
+            color: var(--accent-cyan);
+        }
 
         /* --- SOLUTE SHELF --- */
-        .scroll-area { overflow-y: auto; flex-grow: 1; padding-right: 12px; }
+        .scroll-area {
+            overflow-y: auto;
+            flex-grow: 1;
+            padding-right: 12px;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior: contain;
+        }
+
+        .scroll-area::-webkit-scrollbar { width: 6px; }
+        .scroll-area::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
 
         .substance-card {
             background: var(--glass-bright);
             border: 1px solid var(--border-glass);
             border-radius: 20px;
-            padding: 16px; cursor: pointer;
+            padding: 16px;
+            cursor: pointer;
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            display: flex; align-items: center; gap: 16px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
             margin-bottom: 14px;
         }
 
         .substance-card:hover {
-            background: rgba(255,255,255,0.07);
+            background: rgba(255, 255, 255, 0.07);
             transform: scale(1.03) translateX(8px);
             border-color: var(--accent-cyan);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
         }
 
         .substance-card.active {
@@ -124,127 +174,261 @@
         }
 
         .substance-icon {
-            width: 48px; height: 48px; border-radius: 16px;
-            display: flex; align-items: center; justify-content: center;
+            width: 48px;
+            height: 48px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-size: 1.2rem;
         }
 
         /* --- WORKSTATION --- */
         .workstation {
-            display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
             position: relative;
         }
 
         .beaker-container {
-            position: relative; width: 360px; height: 460px; margin-bottom: 40px;
+            position: relative;
+            width: 360px;
+            height: 460px;
+            margin-bottom: 40px;
         }
 
-        #main-canvas { width: 100%; height: 100%; z-index: 2; position: relative; }
+        #main-canvas {
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+            position: relative;
+        }
 
         .beaker-glass {
-            position: absolute; inset: 0;
-            border-left: 5px solid rgba(255,255,255,0.12);
-            border-right: 5px solid rgba(255,255,255,0.12);
-            border-bottom: 8px solid rgba(255,255,255,0.12);
+            position: absolute;
+            inset: 0;
+            border-left: 5px solid rgba(255, 255, 255, 0.12);
+            border-right: 5px solid rgba(255, 255, 255, 0.12);
+            border-bottom: 8px solid rgba(255, 255, 255, 0.12);
             border-radius: 0 0 50px 50px;
-            z-index: 3; pointer-events: none;
+            z-index: 3;
+            pointer-events: none;
         }
 
         /* --- HUD & BADGES --- */
         .hud-overlay {
-            position: absolute; top: 40px; right: 40px;
+            position: absolute;
+            top: 40px;
+            right: 40px;
             background: rgba(13, 17, 23, 0.6);
             backdrop-filter: blur(10px);
             border: 1px solid var(--border-glass);
-            padding: 20px; border-radius: 24px;
-            min-width: 220px; z-index: 10;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            padding: 20px;
+            border-radius: 24px;
+            min-width: 220px;
+            z-index: 10;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
         }
 
-        .stat-label { font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
-        .stat-value { font-family: 'JetBrains Mono', monospace; font-size: 1.5rem; color: var(--accent-cyan); font-weight: 600; }
+        .stat-label {
+            font-size: 0.65rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .stat-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.5rem;
+            color: var(--accent-cyan);
+            font-weight: 600;
+        }
 
         .class-badge {
-            display: inline-flex; align-items: center; gap: 8px;
-            padding: 10px 20px; border-radius: 40px;
-            font-weight: 700; font-size: 0.85rem;
-            margin-top: 15px; border: 1px solid transparent;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border-radius: 40px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            margin-top: 15px;
+            border: 1px solid transparent;
             transition: all 0.4s;
         }
 
-        .state-unsat { background: rgba(0, 255, 157, 0.08); color: var(--accent-emerald); border-color: rgba(0, 255, 157, 0.2); }
-        .state-sat { background: rgba(255, 179, 0, 0.08); color: var(--accent-amber); border-color: rgba(255, 179, 0, 0.2); }
-        .state-supersat { background: rgba(255, 77, 109, 0.08); color: var(--accent-rose); border-color: rgba(255, 77, 109, 0.2); }
+        .state-unsat {
+            background: rgba(0, 255, 157, 0.08);
+            color: var(--accent-emerald);
+            border-color: rgba(0, 255, 157, 0.2);
+        }
+
+        .state-sat {
+            background: rgba(255, 179, 0, 0.08);
+            color: var(--accent-amber);
+            border-color: rgba(255, 179, 0, 0.2);
+        }
+
+        .state-supersat {
+            background: rgba(255, 77, 109, 0.08);
+            color: var(--accent-rose);
+            border-color: rgba(255, 77, 109, 0.2);
+        }
 
         /* --- CONTROLS --- */
-        .controls-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
-        
+        .controls-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
         .action-card {
             background: var(--glass-bright);
             border: 1px solid var(--border-glass);
-            border-radius: 20px; padding: 16px;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            gap: 10px; cursor: pointer; transition: all 0.3s;
+            border-radius: 20px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
             text-align: center;
         }
 
-        .action-card:hover { border-color: var(--accent-cyan); background: rgba(255,255,255,0.06); transform: translateY(-3px); }
-        .action-card i { color: var(--accent-cyan); width: 24px; height: 24px; }
-        .action-card span { font-size: 0.75rem; font-weight: 600; color: var(--text-dim); }
+        .action-card:hover {
+            border-color: var(--accent-cyan);
+            background: rgba(255, 255, 255, 0.06);
+            transform: translateY(-3px);
+        }
+
+        .action-card i {
+            color: var(--accent-cyan);
+            width: 24px;
+            height: 24px;
+        }
+
+        .action-card span {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-dim);
+        }
 
         .btn-main {
-            width: 100%; padding: 18px; border-radius: 20px;
-            border: none; cursor: pointer; font-weight: 700;
-            display: flex; align-items: center; justify-content: center; gap: 12px;
-            transition: all 0.3s; font-size: 0.9rem;
+            width: 100%;
+            padding: 18px;
+            border-radius: 20px;
+            border: none;
+            cursor: pointer;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            transition: all 0.3s;
+            font-size: 0.9rem;
             margin-bottom: 12px;
         }
 
-        .btn-add { background: var(--accent-cyan); color: var(--bg-deep); }
-        .btn-add:hover { filter: brightness(1.1); box-shadow: 0 0 20px rgba(0,242,255,0.3); }
+        .btn-add {
+            background: var(--accent-cyan);
+            color: var(--bg-deep);
+        }
 
-        .btn-reset { background: rgba(255, 77, 109, 0.1); color: var(--accent-rose); border: 1px solid rgba(255, 77, 109, 0.2); margin-top: auto; }
-        .btn-reset:hover { background: rgba(255, 77, 109, 0.2); }
+        .btn-add:hover {
+            filter: brightness(1.1);
+            box-shadow: 0 0 20px rgba(0, 242, 255, 0.3);
+        }
+
+        .btn-reset {
+            background: rgba(255, 77, 109, 0.1);
+            color: var(--accent-rose);
+            border: 1px solid rgba(255, 77, 109, 0.2);
+            margin-top: auto;
+        }
+
+        .btn-reset:hover {
+            background: rgba(255, 77, 109, 0.2);
+        }
 
         /* --- DILUTION PANEL --- */
         .dilution-box {
             background: linear-gradient(135deg, rgba(0, 242, 255, 0.05) 0%, transparent 100%);
             border: 1px solid rgba(0, 242, 255, 0.15);
-            border-radius: 24px; padding: 20px; margin-top: 10px;
+            border-radius: 24px;
+            padding: 20px;
+            margin-top: 10px;
         }
 
         .dilution-formula {
-            display: flex; flex-direction: column; align-items: center; gap: 10px;
-            margin-top: 15px; font-family: 'JetBrains Mono', monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            margin-top: 15px;
+            font-family: 'JetBrains Mono', monospace;
         }
 
         .snap-state {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
-            width: 100%; margin-top: 10px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            width: 100%;
+            margin-top: 10px;
         }
 
         .snap-item {
-            background: rgba(0,0,0,0.3); padding: 10px; border-radius: 12px;
-            text-align: center; border: 1px solid var(--border-glass);
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid var(--border-glass);
         }
 
-        .snap-label { font-size: 0.6rem; color: var(--text-dim); text-transform: uppercase; }
-        .snap-val { font-size: 0.9rem; font-weight: 700; color: var(--accent-emerald); }
+        .snap-label {
+            font-size: 0.6rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+        }
+
+        .snap-val {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--accent-emerald);
+        }
 
         .formula-display {
-            font-size: 1.1rem; font-weight: 700; color: var(--text-main);
-            padding: 12px; background: rgba(255,255,255,0.03); border-radius: 12px;
-            width: 100%; text-align: center; border: 1px dashed var(--accent-cyan);
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-main);
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            width: 100%;
+            text-align: center;
+            border: 1px dashed var(--accent-cyan);
         }
 
         /* Toasts */
         .toast {
-            position: fixed; top: 30px; left: 50%; transform: translateX(-50%);
-            background: var(--accent-cyan); color: var(--bg-deep);
-            padding: 14px 28px; border-radius: 40px; font-weight: 800;
-            z-index: 2000; box-shadow: 0 15px 40px rgba(0,242,255,0.3);
-            display: flex; align-items: center; gap: 12px;
+            position: fixed;
+            top: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--accent-cyan);
+            color: var(--bg-deep);
+            padding: 14px 28px;
+            border-radius: 40px;
+            font-weight: 800;
+            z-index: 2000;
+            box-shadow: 0 15px 40px rgba(0, 242, 255, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
 
         /* --- RESPONSIVE QUERIES --- */
@@ -252,44 +436,95 @@
             .app-container {
                 grid-template-columns: 1fr;
                 grid-template-rows: auto 1fr auto;
-                height: 100vh; overflow: hidden;
-                padding: 16px; gap: 16px;
+                height: 100vh;
+                overflow: hidden;
+                padding: 16px;
+                gap: 16px;
             }
 
-            body { overflow: hidden; }
+            body {
+                overflow: hidden;
+            }
 
-            .panel { display: none; height: 100%; border-radius: 24px; padding: 20px; }
-            .panel.active { display: flex; animation: panelFade 0.4s ease; }
+            .panel {
+                display: none;
+                height: calc(100vh - 120px);
+                border-radius: 24px;
+                padding: 20px;
+                overflow: hidden;
+            }
 
-            .workstation { height: 100%; padding: 0; justify-content: flex-start; margin-top: 40px; }
-            .workstation.hidden { display: none; }
+            .panel.active {
+                display: flex;
+                animation: panelFade 0.4s ease;
+            }
 
-            .beaker-container { width: 100%; max-width: 320px; height: 380px; margin-bottom: 20px; }
-            .hud-overlay { top: 0px; right: 0; left: 0; width: 100%; min-width: unset; padding: 12px; border-radius: 16px; }
-            .stat-value { font-size: 1.2rem; }
+            .workstation {
+                height: 100%;
+                padding: 0;
+                justify-content: flex-start;
+                margin-top: 40px;
+            }
 
-            .mobile-nav { display: flex; }
+            .workstation.hidden {
+                display: none;
+            }
+
+            .beaker-container {
+                width: 100%;
+                max-width: 320px;
+                height: 380px;
+                margin-bottom: 20px;
+            }
+
+            .hud-overlay {
+                top: 0px;
+                right: 0;
+                left: 0;
+                width: 100%;
+                min-width: unset;
+                padding: 12px;
+                border-radius: 16px;
+            }
+
+            .stat-value {
+                font-size: 1.2rem;
+            }
+
+            .mobile-nav {
+                display: flex;
+            }
         }
 
         @keyframes panelFade {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
 
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
     </style>
 </head>
+
 <body>
 
     <div class="app-container">
-        <h1 style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); border: 0;">Laboratório de Simulação: Concentração e Diluição</h1>
+        <h1
+            style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); border: 0;">
+            Laboratório de Simulação: Concentração e Diluição</h1>
         <!-- SHELF: SOLUTOS -->
         <section class="panel" id="panel-inventory">
             <div class="panel-title">Estoque de Solutos</div>
-                <div class="scroll-area" id="solute-shelf">
+            <div class="scroll-area" id="solute-shelf">
                 <!-- Injected via JS -->
             </div>
-            
-            <div style="font-family: 'JetBrains Mono'; font-size: 0.8rem; color: var(--text-dim); margin-top: 15px; text-align: center; border-top: 1px solid var(--border-glass); padding-top: 15px;">
+
+            <div
+                style="font-family: 'JetBrains Mono'; font-size: 0.8rem; color: var(--text-dim); margin-top: 15px; text-align: center; border-top: 1px solid var(--border-glass); padding-top: 15px;">
                 C = m / V
             </div>
         </section>
@@ -305,7 +540,7 @@
                     <div>
                         <div class="stat-label">Volume</div>
                         <div style="font-family:'JetBrains Mono'; font-size: 1rem; color: white;">
-                             <span id="vol-stat">0.50</span>L
+                            <span id="vol-stat">0.50</span>L
                         </div>
                     </div>
                     <div style="text-align: right;">
@@ -318,7 +553,8 @@
             </div>
 
             <div class="beaker-container">
-                <div style="position: absolute; width: 100%; height: 50px; pointer-events: none; opacity: 0;" id="steam"></div>
+                <div style="position: absolute; width: 100%; height: 50px; pointer-events: none; opacity: 0;"
+                    id="steam"></div>
                 <div class="beaker-glass"></div>
                 <canvas id="main-canvas"></canvas>
             </div>
@@ -331,7 +567,7 @@
         <!-- TOOLS & DILUTION -->
         <section class="panel" id="panel-tools">
             <div class="panel-title">Instrumentação</div>
-            
+
             <div class="scroll-area">
                 <div class="controls-grid">
                     <div class="action-card" onclick="changeLiquid(0.1)">
@@ -357,15 +593,18 @@
                 </button>
 
                 <div class="dilution-box">
-                    <div style="font-weight: 700; color: var(--accent-cyan); display: flex; align-items: center; gap: 8px;">
-                        <i data-lucide="calculator" style="width:18px"></i> 
+                    <div
+                        style="font-weight: 700; color: var(--accent-cyan); display: flex; align-items: center; gap: 8px;">
+                        <i data-lucide="calculator" style="width:18px"></i>
                         Lei da Diluição
                     </div>
 
                     <div class="dilution-formula">
                         <div class="formula-display">C₁V₁ = C₂V₂</div>
-                        
-                        <button class="btn-main" style="background: rgba(0, 242, 255, 0.1); border: 1px solid var(--accent-cyan); color: var(--accent-cyan); margin-top: 10px; padding: 10px; font-size: 0.75rem;" onclick="snapshotState()">
+
+                        <button class="btn-main"
+                            style="background: rgba(0, 242, 255, 0.1); border: 1px solid var(--accent-cyan); color: var(--accent-cyan); margin-top: 10px; padding: 10px; font-size: 0.75rem;"
+                            onclick="snapshotState()">
                             Fixar Inicial (C₁, V₁)
                         </button>
 
@@ -436,7 +675,7 @@
             lucide.createIcons();
             updateStats();
             requestAnimationFrame(loop);
-            
+
             window.addEventListener('resize', handleResize);
         }
 
@@ -501,7 +740,7 @@
 
         function addSoluteMass() {
             state.mass += 5;
-            for(let i=0; i<15; i++) {
+            for (let i = 0; i < 15; i++) {
                 state.particles.push({
                     x: Math.random() * (w - 60) + 30,
                     y: -20 - Math.random() * 50,
@@ -523,7 +762,7 @@
         function evaporate() {
             const steam = document.getElementById('steam');
             gsap.to(steam, { opacity: 1, duration: 0.3, yoyo: true, repeat: 5 });
-            gsap.to(state, { 
+            gsap.to(state, {
                 volume: Math.max(0.1, Math.round((state.volume - 0.1) * 10) / 10),
                 duration: 2,
                 onUpdate: updateStats,
@@ -552,14 +791,14 @@
         function updateStats() {
             const s = state.activeSolute.s;
             const maxDissolvable = s * state.volume;
-            
+
             if (state.mass <= maxDissolvable) {
                 state.concentration = state.mass / state.volume;
                 state.residue = 0;
                 state.state = 'state-unsat';
                 if (Math.abs(state.mass - maxDissolvable) < 0.01) state.state = 'state-sat';
             } else {
-                state.concentration = s; 
+                state.concentration = s;
                 state.residue = state.mass - maxDissolvable;
                 state.state = 'state-supersat';
             }
@@ -567,12 +806,12 @@
             document.getElementById('conc-val').innerHTML = `${state.concentration.toFixed(2)} <small>g/L</small>`;
             document.getElementById('mass-stat').innerText = state.mass.toFixed(1);
             document.getElementById('vol-stat').innerText = state.volume.toFixed(2);
-            
+
             const badge = document.getElementById('status-badge');
             badge.className = `class-badge ${state.state}`;
             const statusText = state.state === 'state-unsat' ? 'Insaturada' : (state.state === 'state-sat' ? 'Saturada' : 'Saturada (Corpo de Fundo)');
             badge.innerHTML = `<i data-lucide="${state.state === 'state-unsat' ? 'check-circle' : 'alert-triangle'}"></i> ${statusText}`;
-            
+
             // Lógica de Diluição C1V1 = C2V2
             if (state.snapshot.c !== null) {
                 const c1v1 = state.snapshot.c * state.snapshot.v;
@@ -581,7 +820,7 @@
                 // Mas aqui estamos manipulando livremente. O foco é mostrar o cálculo.
                 const formulaTag = document.querySelector('.formula-display');
                 formulaTag.innerText = `(${state.snapshot.c.toFixed(1)} × ${state.snapshot.v.toFixed(1)}) = (${state.concentration.toFixed(1)} × ${state.volume.toFixed(1)})`;
-                
+
                 // Se a diferença for pequena (conservação de massa), destaca
                 if (Math.abs(c1v1 - c2v2) < 0.1) {
                     formulaTag.style.borderColor = "var(--accent-emerald)";
@@ -598,15 +837,15 @@
         function loop() {
             ctx.clearRect(0, 0, w, h);
             ctx.save();
-            const r = 50; 
+            const r = 50;
             ctx.beginPath();
-            ctx.moveTo(30, 0); ctx.lineTo(w-30, 0); ctx.lineTo(w-30, h-r); ctx.quadraticCurveTo(w-30, h, w-30-r, h);
-            ctx.lineTo(30+r, h); ctx.quadraticCurveTo(30, h, 30, h-r); ctx.closePath();
+            ctx.moveTo(30, 0); ctx.lineTo(w - 30, 0); ctx.lineTo(w - 30, h - r); ctx.quadraticCurveTo(w - 30, h, w - 30 - r, h);
+            ctx.lineTo(30 + r, h); ctx.quadraticCurveTo(30, h, 30, h - r); ctx.closePath();
             ctx.clip();
 
             let level = state.volume * (h - 60);
             let y = h - level;
-            
+
             const intensity = Math.min(1.0, (state.concentration / state.activeSolute.s) + 0.1);
             ctx.globalAlpha = 0.8;
             ctx.fillStyle = hexToRgba(state.activeSolute.color, intensity * 0.6);
@@ -623,7 +862,7 @@
             state.particles.forEach((p, idx) => {
                 ctx.fillStyle = state.activeSolute.color;
                 ctx.globalAlpha = p.settled ? 0.9 : 1.0;
-                if(!p.settled) {
+                if (!p.settled) {
                     p.y += p.vy; p.x += p.vx;
                     if (p.y > h - 10) { p.y = h - 10 - Math.random() * 10; p.settled = true; }
                 } else {
@@ -637,7 +876,7 @@
                 ctx.fillStyle = state.activeSolute.color;
                 ctx.globalAlpha = 0.8;
                 ctx.beginPath();
-                ctx.moveTo(35, h); ctx.quadraticCurveTo(w/2, h - resHeight, w-35, h); ctx.fill();
+                ctx.moveTo(35, h); ctx.quadraticCurveTo(w / 2, h - resHeight, w - 35, h); ctx.fill();
             }
 
             ctx.restore();
@@ -664,20 +903,20 @@
             t.style.cssText = "position:fixed; top:30px; left:50%; transform:translateX(-50%); background:var(--accent-cyan); color:var(--bg-deep); padding:14px 28px; border-radius:40px; font-weight:800; z-index:2000; box-shadow:0 15px 40px rgba(0,242,255,0.3);";
             t.innerHTML = `<i data-lucide="zap"></i> ${msg}`; document.body.appendChild(t);
             lucide.createIcons();
-            
-            const anim = gsap.from(t, { 
+
+            const anim = gsap.from(t, {
                 y: -40, opacity: 0, duration: 0.5, ease: "power2.out",
                 // Reduced motion check
                 ...(window.matchMedia('(prefers-reduced-motion: reduce)').matches ? { y: 0, scale: 0.9 } : {})
             });
 
             setTimeout(() => {
-                gsap.to(t, { 
-                    opacity: 0, 
+                gsap.to(t, {
+                    opacity: 0,
                     onComplete: () => {
                         anim.kill();
                         t.remove();
-                    } 
+                    }
                 });
             }, 2500);
         }
@@ -685,4 +924,5 @@
         window.onload = init;
     </script>
 </body>
+
 </html>

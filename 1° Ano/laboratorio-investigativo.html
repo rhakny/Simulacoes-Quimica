@@ -1,167 +1,179 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Laboratório Investigativo | Separação de Misturas</title>
-    <meta name="description" content="Desvende os segredos das misturas químicas neste laboratório virtual. Pratique filtração, destilação, decantação e muito mais.">
-    <!-- Open Graph -->
-    <meta property="og:title" content="Laboratório Investigativo | Separação de Misturas">
-    <meta property="og:description" content="Laboratório virtual avançado para separação de misturas.">
-    <meta property="og:type" content="website">
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <!-- Scripts Externos -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Laboratório Investigativo - Química Interativa</title>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-deep: #0a0e14;
-            --panel-glass: rgba(20, 26, 35, 0.7);
-            --border-glass: rgba(255, 255, 255, 0.1);
+            --bg-deep: #05070a;
+            --panel-glass: rgba(13, 17, 23, 0.7);
+            --border-glass: rgba(255, 255, 255, 0.12);
+            --glass-bright: rgba(255, 255, 255, 0.05);
             --accent-cyan: #00f2ff;
             --accent-emerald: #00ff9d;
             --accent-amber: #ffb300;
             --accent-rose: #ff4d6d;
-            --text-main: #e0e6ed;
+            --text-main: #e2e8f0;
             --text-dim: #94a3b8;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
         body {
             font-family: 'Outfit', sans-serif;
-            background-color: var(--bg-deep);
+            background: var(--bg-deep);
             color: var(--text-main);
-            overflow: hidden;
             height: 100vh;
+            overflow: hidden;
             display: flex;
-            background-image: 
-                radial-gradient(circle at 20% 20%, rgba(0, 242, 255, 0.05) 0%, transparent 40%),
-                radial-gradient(circle at 80% 80%, rgba(0, 255, 157, 0.05) 0%, transparent 40%);
+            flex-direction: column;
         }
 
+        /* --- LAYOUT --- */
         .app-container {
             display: grid;
-            grid-template-columns: 320px 1fr 350px;
-            width: 100vw; height: 100vh;
-            padding: 20px; gap: 20px;
+            grid-template-columns: 320px 1fr 320px;
+            height: 100vh;
+            padding: 24px;
+            gap: 24px;
+            position: relative;
         }
 
         .panel {
             background: var(--panel-glass);
-            backdrop-filter: blur(16px);
+            backdrop-filter: blur(20px);
             border: 1px solid var(--border-glass);
-            border-radius: 28px;
-            display: flex; flex-direction: column;
-            padding: 24px; box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+            border-radius: 32px;
+            display: flex;
+            flex-direction: column;
+            padding: 24px;
             overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
         }
 
         .panel-title {
-            font-size: 0.75rem; text-transform: uppercase;
-            color: var(--accent-cyan); letter-spacing: 2px;
-            margin-bottom: 20px; display: flex; align-items: center; gap: 8px;
-            flex-shrink: 0; font-weight: 700;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: var(--accent-cyan);
+            letter-spacing: 2.5px;
+            margin-bottom: 24px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
         .panel-title::before {
-            content: ''; width: 8px; height: 8px;
-            background: var(--accent-cyan); border-radius: 50%;
-            box-shadow: 0 0 12px var(--accent-cyan);
-        }
-
-        /* --- SHELF --- */
-        .scroll-area { overflow-y: auto; flex-grow: 1; padding-right: 8px; }
-
-        .substance-card {
-            background: rgba(255,255,255,0.03);
-            border: 1px solid var(--border-glass);
-            border-radius: 18px;
-            padding: 14px; cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
-            display: flex; align-items: center; gap: 14px;
-            margin-bottom: 12px;
-        }
-
-        .substance-card:hover {
-            background: rgba(255,255,255,0.08);
-            transform: scale(1.02) translateX(5px);
-            border-color: var(--accent-cyan);
-        }
-
-        .substance-icon {
-            width: 44px; height: 44px; border-radius: 14px;
-            display: flex; align-items: center; justify-content: center;
+            content: '';
+            width: 6px; height: 6px;
+            background: var(--accent-cyan);
+            border-radius: 50%;
+            box-shadow: 0 0 15px var(--accent-cyan);
         }
 
         /* --- WORKSTATION --- */
         .workstation {
-            display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
             position: relative;
         }
 
         .beaker-container {
-            position: relative; width: 340px; height: 440px; margin-bottom: 30px;
+            position: relative;
+            width: 360px;
+            height: 460px;
+            margin-bottom: 40px;
         }
 
-        #main-canvas { width: 100%; height: 100%; z-index: 2; position: relative; }
+        #main-canvas {
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+            position: relative;
+        }
 
         .beaker-glass {
-            position: absolute; inset: 0;
-            border-left: 6px solid rgba(255,255,255,0.15);
-            border-right: 6px solid rgba(255,255,255,0.15);
-            border-bottom: 8px solid rgba(255,255,255,0.15);
-            border-radius: 0 0 45px 45px;
-            z-index: 3; pointer-events: none;
+            position: absolute;
+            inset: 0;
+            border-left: 5px solid rgba(255,255,255,0.12);
+            border-right: 5px solid rgba(255,255,255,0.12);
+            border-bottom: 8px solid rgba(255,255,255,0.12);
+            border-radius: 0 0 50px 50px;
+            z-index: 3;
+            pointer-events: none;
         }
 
-        /* --- CLASSIFICATION HUD --- */
-        .class-badge {
-            display: inline-flex; align-items: center; gap: 10px;
-            padding: 8px 16px; border-radius: 30px;
-            font-weight: 700; font-size: 0.9rem;
-            margin-top: 10px; border: 1px solid transparent;
-            transition: all 0.5s;
-        }
-
-        .class-homo { background: rgba(0, 255, 157, 0.1); color: var(--accent-emerald); border-color: rgba(0, 255, 157, 0.3); }
-        .class-hetero { background: rgba(255, 179, 0, 0.1); color: var(--accent-amber); border-color: rgba(255, 179, 0, 0.3); }
-
-        /* --- TOOLS --- */
-        .tool-tabs {
-            display: flex; gap: 10px; margin-bottom: 20px;
-            background: rgba(255,255,255,0.02); padding: 5px; border-radius: 14px;
-        }
-
-        .tab-btn {
-            flex: 1; padding: 10px; border-radius: 10px;
-            border: none; background: transparent; color: var(--text-dim);
-            cursor: pointer; font-weight: 600; font-size: 0.8rem;
-        }
-
-        .tab-btn.active { background: var(--accent-cyan); color: var(--bg-deep); }
-
-        .tools-scroll { flex-grow: 1; overflow-y: auto; padding-right: 8px; display: flex; flex-direction: column; }
-
-        .action-btn {
-            background: rgba(255,255,255,0.04);
+        /* --- HUD --- */
+        .hud-overlay {
+            position: absolute;
+            top: 40px; right: 40px;
+            background: rgba(13, 17, 23, 0.6);
+            backdrop-filter: blur(10px);
             border: 1px solid var(--border-glass);
-            border-radius: 18px; padding: 16px;
-            color: var(--text-main); cursor: pointer;
-            width: 100%; display: flex; align-items: center; gap: 12px;
-            margin-bottom: 10px; transition: all 0.2s;
+            padding: 20px;
+            border-radius: 24px;
+            min-width: 220px;
+            z-index: 10;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
         }
 
-        .action-btn:hover { border-color: var(--accent-cyan); background: rgba(255,255,255,0.08); }
+        .stat-label { font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
+        .stat-value { font-family: 'JetBrains Mono', monospace; font-size: 1.2rem; color: var(--accent-cyan); font-weight: 600; }
 
-        .action-btn i { width: 22px; color: var(--accent-cyan); }
+        .class-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            margin-top: 15px;
+            border: 1px solid transparent;
+        }
 
+        .state-homo { background: rgba(0, 255, 157, 0.08); color: var(--accent-emerald); border-color: rgba(0, 255, 157, 0.2); }
+        .state-hetero { background: rgba(255, 179, 0, 0.08); color: var(--accent-amber); border-color: rgba(255, 179, 0, 0.2); }
 
+        /* --- INVENTORY ITEMS --- */
+        .scroll-area { 
+            overflow-y: auto; 
+            flex-grow: 1; 
+            padding-right: 8px; 
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior: contain;
+        }
+        .scroll-area::-webkit-scrollbar { width: 6px; }
+        .scroll-area::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
 
-        /* --- MOBILE NAVIGATION --- */
+        .item-card {
+            background: var(--glass-bright);
+            border: 1px solid var(--border-glass);
+            border-radius: 20px;
+            padding: 14px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.3s;
+        }
+
+        .item-card:hover { background: rgba(255,255,255,0.08); transform: translateX(5px); border-color: var(--accent-cyan); }
+        
+        .item-icon {
+            width: 40px; height: 40px;
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(0,0,0,0.3);
+        }
+
+        /* --- MOBILE NAV --- */
         .mobile-nav {
             display: none;
             position: fixed;
@@ -184,24 +196,29 @@
         .mb-nav-link i { width: 20px; height: 20px; }
         .mb-nav-link.active { color: var(--accent-cyan); }
 
-        /* --- RESPONSIVE QUERIES --- */
+        /* --- RESPONSIVE --- */
         @media (max-width: 1100px) {
             .app-container {
                 grid-template-columns: 1fr;
                 grid-template-rows: auto 1fr auto;
-                height: 100vh; overflow: hidden;
-                padding: 16px; gap: 16px;
+                padding: 16px;
+                gap: 16px;
+                height: 100vh; /* Mantém fixo */
             }
 
-            .panel { display: none; height: 100%; border-radius: 24px; padding: 20px; }
+            .panel { 
+                display: none; 
+                height: calc(100vh - 120px); /* Garante que caiba entre o topo e a nav */
+                overflow: hidden;
+            }
             .panel.active { display: flex; animation: panelFade 0.4s ease; }
 
-            .workstation { height: 100%; padding: 0; justify-content: flex-start; margin-top: 20px; }
+            .workstation { height: 100%; justify-content: flex-start; margin-top: 40px; }
             .workstation.hidden { display: none; }
 
-            .beaker-container { width: 100%; max-width: 300px; height: 380px; margin-bottom: 20px; }
-            #mixture-title { font-size: 1.4rem; }
-
+            .beaker-container { width: 100%; max-width: 320px; height: 380px; margin-bottom: 20px; }
+            .hud-overlay { top: 0; left: 0; right: 0; width: 100%; min-width: unset; padding: 12px; border-radius: 16px; position: absolute; }
+            
             .mobile-nav { display: flex; }
         }
 
@@ -210,307 +227,274 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Scrollbars */
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--accent-cyan); }
+        /* Tools */
+        .btn-tool {
+            width: 100%;
+            padding: 14px;
+            border-radius: 16px;
+            border: 1px solid var(--border-glass);
+            background: var(--glass-bright);
+            color: white;
+            font-family: 'Outfit';
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 10px;
+            transition: all 0.3s;
+            flex-shrink: 0;
+        }
+
+        .btn-tool:hover { background: rgba(255,255,255,0.08); border-color: var(--accent-emerald); }
+
     </style>
 </head>
 <body>
 
     <div class="app-container">
-        <h1 style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); border: 0;">Laboratório Investigativo: Separação de Misturas</h1>
-        <!-- MATERIAIS -->
-        <section class="panel" id="panel-reagents">
-            <div class="panel-title">Bancada de Reagentes</div>
-            <div class="scroll-area" id="shelf"></div>
-            <button class="action-btn" style="margin-top: 15px; border-color: var(--accent-rose); color: var(--accent-rose);" onclick="resetBeaker()">
-                <i data-lucide="refresh-cw"></i> Reiniciar Laboratório
-            </button>
+        <!-- PAINEL REAGENTES -->
+        <section class="panel" id="panel-inventory">
+            <div class="panel-title">Estoque de Reagentes</div>
+            <div class="scroll-area" id="inventory-list">
+                <!-- JS Inject -->
+            </div>
         </section>
 
-        <!-- BÉQUER -->
+        <!-- LAB WORKSTATION -->
         <section class="workstation active" id="workstation-view">
+            <div class="hud-overlay">
+                <div class="stat-label">Análise da Mistura</div>
+                <div class="stat-value" id="mixture-title">Vazio</div>
+                
+                <div style="margin-top: 10px;">
+                    <div class="stat-label">Componentes</div>
+                    <div id="mixture-details" style="font-size: 0.8rem; color: var(--text-dim);">---</div>
+                </div>
+
+                <div id="classification-badge"></div>
+            </div>
+
             <div class="beaker-container">
                 <div class="beaker-glass"></div>
                 <canvas id="main-canvas"></canvas>
             </div>
-            <div style="text-align: center;">
-                <h2 id="mixture-title" style="font-size: 1.6rem;">Vazio</h2>
-                <div id="auto-classification"></div>
-                <p id="mixture-details" style="color: var(--text-dim); margin-top: 10px; font-size: 0.85rem;"></p>
-            </div>
+
+            <div id="bottom-badge-placeholder"></div>
         </section>
 
-        <!-- FERRAMENTAS -->
+        <!-- PAINEL FERRAMENTAS -->
         <section class="panel" id="panel-tools">
-            <div class="panel-title">Investigação Avançada</div>
-            <div class="tool-tabs">
-                <button class="tab-btn active" onclick="setTab('sep')">SEPARAÇÃO</button>
-                <button class="tab-btn" onclick="setTab('obs')">NOTAS</button>
+            <div class="panel-title">Ferramentas de Separação</div>
+            <div class="scroll-area" id="tools-scroll">
+                <button class="btn-tool" onclick="runTool('filter')"><i data-lucide="filter"></i> Filtração</button>
+                <button class="btn-tool" onclick="runTool('decant')"><i data-lucide="pipette"></i> Decantação</button>
+                <button class="btn-tool" onclick="runTool('distill')"><i data-lucide="flask-conical"></i> Destilação</button>
+                <button class="btn-tool" onclick="runTool('evap')"><i data-lucide="sun"></i> Evaporação</button>
+                <button class="btn-tool" onclick="runTool('magnet')"><i data-lucide="magnet"></i> Imantação</button>
+                <button class="btn-tool" style="margin-top: 20px; background: rgba(255, 77, 109, 0.1); border-color: rgba(255, 77, 109, 0.2); color: var(--accent-rose);" onclick="resetLab()">
+                    <i data-lucide="refresh-cw"></i> Limpar Tudo
+                </button>
             </div>
-
-            <div id="tab-sep" class="tools-scroll">
-                <button class="action-btn" onclick="runSep('filtration')"><i data-lucide="filter"></i>Filtração</button>
-                <button class="action-btn" onclick="runSep('decantation')"><i data-lucide="pipette"></i>Decantação</button>
-                <button class="action-btn" onclick="runSep('distillation')"><i data-lucide="flask-conical"></i>Destilação</button>
-                <button class="action-btn" onclick="runSep('evaporation')"><i data-lucide="sun"></i>Evaporação</button>
-                <button class="action-btn" onclick="runSep('sieving')"><i data-lucide="grid-3x3"></i>Peneiramento</button>
-                <button class="action-btn" onclick="runSep('magnetic')"><i data-lucide="magnet"></i>Imantação</button>
-            </div>
-
-            <div id="tab-obs" style="display: none; flex-direction: column; flex-grow: 1;">
-                <textarea id="notes" placeholder="Descreva os fenômenos observados..." style="flex-grow: 1; background: transparent; border: 1px solid var(--border-glass); border-radius: 16px; padding: 15px; color: white; resize: none;"></textarea>
-            </div>
-
-            <button id="challenge-btn" class="action-btn" style="margin-top: 15px; background: var(--accent-emerald); color: var(--bg-deep); font-weight: 700; justify-content: center;" onclick="startChallenge()">
-                <i data-lucide="target" style="color: var(--bg-deep)"></i> MODO SUGESTIVO
-            </button>
         </section>
     </div>
 
-    <!-- Navegação Mobile -->
+    <!-- NAVEGAÇÃO MOBILE -->
     <nav class="mobile-nav">
-        <label class="mb-nav-link" onclick="showView('reagents')" id="nav-reagents">
-            <i data-lucide="database"></i>
-            <span>Reagentes</span>
-        </label>
-        <label class="mb-nav-link active" onclick="showView('lab')" id="nav-lab">
+        <div class="mb-nav-link" onclick="switchTab('inventory', this)">
+            <i data-lucide="beaker"></i>
+            <span>Estoque</span>
+        </div>
+        <div class="mb-nav-link active" onclick="switchTab('lab', this)">
             <i data-lucide="eye"></i>
             <span>Lab</span>
-        </label>
-        <label class="mb-nav-link" onclick="showView('tools')" id="nav-tools">
+        </div>
+        <div class="mb-nav-link" onclick="switchTab('tools', this)">
             <i data-lucide="wrench"></i>
             <span>Ferramentas</span>
-        </label>
+        </div>
     </nav>
 
     <script>
-        const SUBSTANCES = [
+        const REAGENTS = [
             { id: 'water', name: 'Água', color: 'rgba(64, 164, 255, 0.3)', type: 'polar', state: 'liquid', density: 1.0, icon: 'droplet' },
             { id: 'alcohol', name: 'Álcool', color: 'rgba(120, 255, 240, 0.25)', type: 'polar', state: 'liquid', density: 0.79, icon: 'beaker' },
             { id: 'oil', name: 'Óleo', color: 'rgba(255, 220, 64, 0.6)', type: 'nonpolar', state: 'liquid', density: 0.9, icon: 'waves' },
-            { id: 'salt', name: 'Sal', color: '#ffffff', type: 'soluble-polar', state: 'solid', size: 'fine', density: 2.1, icon: 'circle-dot' },
-            { id: 'sugar', name: 'Açúcar', color: '#e0e0e0', type: 'soluble-polar', state: 'solid', size: 'fine', density: 1.6, icon: 'shapes' },
-            { id: 'sand', name: 'Areia', color: '#c2b280', type: 'insoluble', state: 'solid', size: 'coarse', density: 2.6, icon: 'mountain' },
-            { id: 'iron', name: 'Ferro', color: '#444444', type: 'insoluble', state: 'solid', size: 'coarse', density: 7.8, magnetic: true, icon: 'anvil' },
-            { id: 'dye', name: 'Corante', color: '#ff4d6d', type: 'polar', state: 'liquid', density: 1.05, icon: 'palette' }
-        ];
-
-        const CHALLENGES = [
-            { id: 1, title: "Filtração Simples", ingredients: ['water', 'sand'], goal: "Remova a Areia", check: (m) => !m.some(s=>s.id==='sand') },
-            { id: 2, title: "Purificação Magnética", ingredients: ['sand', 'iron'], goal: "Recupere o Ferro da Areia", check: (m) => !m.some(s=>s.id==='iron') },
-            { id: 3, title: "Decantação Necessária", ingredients: ['water', 'oil'], goal: "Remova o Óleo do Béquer", check: (m) => !m.some(s=>s.id==='oil') },
-            { id: 4, title: "Destilação de Bebida", ingredients: ['water', 'alcohol'], goal: "Separe o Álcool da Água", check: (m) => !m.some(s=>s.id==='alcohol') },
-            { id: 5, title: "Ouro do Mar (Evaporação)", ingredients: ['water', 'salt'], goal: "Obtenha o Sal Sólido", check: (m) => !m.some(s=>s.id==='water') },
-            { id: 6, title: "Limpeza Industrial", ingredients: ['water', 'oil', 'sand', 'iron'], goal: "Obtenha Água Limpa (Sem Ferro, Areia ou Óleo)", check: (m) => !m.some(s=>['oil', 'sand', 'iron'].includes(s.id)) },
-            { id: 7, title: "Recriminação Química", ingredients: ['alcohol', 'dye', 'sand'], goal: "Obtenha o Álcool Puro (Dica: Filtre e Destile)", check: (m) => !m.some(s=>['dye', 'sand'].includes(s.id)) },
-            { id: 8, title: "Desafio do Pântano", ingredients: ['water', 'oil', 'sand', 'sugar'], goal: "Remova tudo exceto a Água com Açúcar", check: (m) => !m.some(s=>['oil', 'sand'].includes(s.id)) },
-            { id: 9, title: "Extração Total", ingredients: ['water', 'alcohol', 'iron', 'salt', 'oil'], goal: "Esvazie o Béquer usando Destilação, Imantação e Decantação", check: (m) => m.length === 0 },
-            { id: 10, title: "Sopa de Areia e Sal", ingredients: ['water', 'sand', 'salt'], goal: "Recupere o Sal Seco", check: (m) => !m.some(s=>['water', 'sand'].includes(s.id)) }
+            { id: 'salt', name: 'Sal', color: '#ffffff', type: 'soluble-polar', state: 'solid', density: 2.1, icon: 'circle-dot' },
+            { id: 'sugar', name: 'Açúcar', color: '#f8fafc', type: 'soluble-polar', state: 'solid', density: 1.6, icon: 'shapes' },
+            { id: 'sand', name: 'Areia', color: '#d4b483', type: 'insoluble', state: 'solid', density: 2.6, icon: 'mountain' },
+            { id: 'iron', name: 'Ferro', color: '#444444', type: 'insoluble', state: 'solid', density: 7.8, icon: 'anvil', magnetic: true }
         ];
 
         let mixture = [];
         let particles = [];
-        let curChallenge = null;
         const canvas = document.getElementById('main-canvas');
         const ctx = canvas.getContext('2d');
         let w, h;
 
-        /* --- PARTICLE ENGINE --- */
         class Particle {
-            constructor(sub) {
-                this.sub = sub;
-                this.x = Math.random() * (w - 50) + 25;
-                this.y = -20 - Math.random() * 100;
-                this.size = sub.state === 'solid' ? Math.random() * 3 + 1.5 : Math.random() * 6 + 4;
+            constructor(reagent) {
+                this.reagent = reagent;
+                this.reset();
+            }
+            reset() {
+                this.x = Math.random() * w;
+                this.y = -20;
+                this.size = this.reagent.state === 'solid' ? Math.random() * 3 + 1.5 : Math.random() * 6 + 4;
                 this.vy = Math.random() * 2 + 1;
                 this.vx = (Math.random() - 0.5) * 0.4;
                 this.dissolved = false;
             }
-            update(liquidLevel) {
+            update(level) {
                 let floor = h - 20;
-                if (this.sub.type === 'nonpolar') floor = h - liquidLevel + 20;
-                if (this.sub.type === 'soluble-polar' && this.y > h - liquidLevel) this.dissolved = true;
+                if (this.reagent.type === 'nonpolar') floor = h - level + 20;
+                if (this.reagent.type === 'soluble-polar' && this.y > h - level) this.dissolved = true;
 
                 if (this.y < floor) { this.y += this.vy; this.x += this.vx; }
                 else { this.x += Math.sin(Date.now() / 600) * 0.1; }
             }
             draw() {
                 ctx.globalAlpha = this.dissolved ? 0.08 : 1.0;
-                ctx.fillStyle = this.sub.color;
+                ctx.fillStyle = this.reagent.color;
                 ctx.beginPath();
-                if (this.sub.state === 'solid') ctx.rect(this.x, this.y, this.size, this.size);
+                if (this.reagent.state === 'solid') ctx.rect(this.x, this.y, this.size, this.size);
                 else ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
                 ctx.fill();
             }
         }
 
         function init() {
-            w = canvas.parentElement.clientWidth; h = canvas.parentElement.clientHeight;
-            canvas.width = w; canvas.height = h;
-            buildShelf();
+            handleResize();
+            buildInventory();
             lucide.createIcons();
             requestAnimationFrame(loop);
-
             window.addEventListener('resize', handleResize);
         }
 
         function handleResize() {
-            w = canvas.parentElement.clientWidth; h = canvas.parentElement.clientHeight;
+            w = canvas.parentElement.clientWidth;
+            h = canvas.parentElement.clientHeight;
             canvas.width = w; canvas.height = h;
         }
 
-        function showView(view) {
-            const panels = ['reagents', 'tools'];
-            const workstation = document.getElementById('workstation-view');
-            const navItems = ['nav-reagents', 'nav-lab', 'nav-tools'];
-
-            navItems.forEach(id => document.getElementById(id).classList.remove('active'));
-            document.getElementById(`nav-${view}`).classList.add('active');
-
-            if (view === 'lab') {
-                workstation.classList.remove('hidden');
-                panels.forEach(p => document.getElementById(`panel-${p}`).classList.remove('active'));
-            } else {
-                workstation.classList.add('hidden');
-                panels.forEach(p => {
-                    const el = document.getElementById(`panel-${p}`);
-                    if (p === view) el.classList.add('active');
-                    else el.classList.remove('active');
-                });
-            }
-            handleResize();
-        }
-
-        function buildShelf() {
-            const shelf = document.getElementById('shelf');
-            shelf.innerHTML = "";
-            SUBSTANCES.forEach(s => {
+        function buildInventory() {
+            const list = document.getElementById('inventory-list');
+            REAGENTS.forEach(r => {
                 const card = document.createElement('div');
-                card.className = 'substance-card';
-                card.innerHTML = `<div class="substance-icon" style="background:${s.color}33; border:1px solid ${s.color}55"><i data-lucide="${s.icon}" style="width:18px; color:${s.color}"></i></div><div><b>${s.name}</b><br><small style="color:var(--text-dim)">${s.state}</small></div>`;
-                card.onclick = () => addSub(s);
-                shelf.appendChild(card);
+                card.className = 'item-card';
+                card.innerHTML = `
+                    <div class="item-icon"><i data-lucide="${r.icon}" style="color: ${r.color}"></i></div>
+                    <div style="flex-grow: 1;">
+                        <div style="font-weight: 600; font-size: 0.9rem;">${r.name}</div>
+                        <div style="font-size: 0.7rem; color: var(--text-dim);">${r.type}</div>
+                    </div>
+                    <i data-lucide="plus" style="width: 16px; opacity: 0.5;"></i>
+                `;
+                card.onclick = () => addReagent(r);
+                list.appendChild(card);
             });
-        }
-
-        function addSub(s) {
-            mixture.push(s);
-            for(let i=0; i<30; i++) particles.push(new Particle(s));
-            updateLogic();
-        }
-
-        function updateLogic() {
-            const title = document.getElementById('mixture-title');
-            const hud = document.getElementById('auto-classification');
-            const det = document.getElementById('mixture-details');
-
-            if (curChallenge) {
-                title.innerText = `Desafio: ${curChallenge.title}`;
-                det.innerHTML = `<b style="color:var(--accent-cyan)">OBJETIVO:</b> ${curChallenge.goal}`;
-                if (curChallenge.check(mixture)) {
-                    notify("✨ DESAFIO CONCLUÍDO! ✨");
-                    curChallenge = null;
-                    setTimeout(updateLogic, 2000);
-                }
-            } else if (mixture.length === 0) {
-                title.innerText = "Béquer Vazio";
-                hud.innerHTML = ""; det.innerText = "";
-                return;
-            } else {
-                title.innerText = "Mistura Ativa";
-                det.innerText = [...new Set(mixture.map(m => m.name))].join(" + ");
-            }
-
-            // LÓGICA DE FASES
-            let phases = 0;
-            const hasPolarGroup = mixture.some(m => m.type.includes('polar'));
-            const hasNonPolarGroup = mixture.some(m => m.type === 'nonpolar');
-            const insolubleCount = [...new Set(mixture.filter(m => m.type === 'insoluble').map(m => m.id))].length;
-
-            if (hasPolarGroup) phases += 1;
-            if (hasNonPolarGroup) phases += 1;
-            phases += insolubleCount;
-
-            const type = phases > 1 ? 'Heterogênea' : 'Homogênea';
-            hud.innerHTML = `<div class="class-badge ${type === 'Homogênea' ? 'class-homo' : 'class-hetero'}"><i data-lucide="${type === 'Homogênea' ? 'check-circle' : 'alert-circle'}" style="width:16px"></i> Mistura ${type} (${phases} ${phases > 1 ? 'fases' : 'fase'})</div>`;
             lucide.createIcons();
         }
 
-        function runSep(m) {
-            if (mixture.length === 0) return;
-            let removed = [];
-            switch(m) {
-                case 'filtration':
-                    mixture = mixture.filter(s => {
-                        let stays = s.state === 'liquid' || s.type.includes('soluble');
-                        if(!stays) removed.push(s.name); return stays;
-                    }); break;
-                case 'decantation':
-                    if(mixture.some(s=>s.type==='nonpolar')) {
-                        let found = mixture.find(s=>s.type==='nonpolar');
-                        removed.push(found.name);
-                        mixture = mixture.filter(s=>s.id !== found.id);
-                    } break;
-                case 'distillation':
-                    const water = mixture.find(s=>s.id==='water');
-                    const alcohol = mixture.find(s=>s.id==='alcohol');
-                    if(alcohol) { removed.push(alcohol.name); mixture = mixture.filter(s=>s.id !== 'alcohol'); }
-                    else if(water) { removed.push(water.name); mixture = mixture.filter(s=>s.id !== 'water'); }
-                    break;
-                case 'evaporation':
-                    mixture = mixture.filter(s => {
-                        let evaporates = s.state === 'liquid';
-                        if(evaporates) removed.push(s.name); return !evaporates;
-                    }); break;
-                case 'sieving':
-                    mixture = mixture.filter(s => {
-                        let ok = s.size !== 'coarse';
-                        if(!ok) removed.push(s.name); return ok;
-                    }); break;
-                case 'magnetic':
-                    mixture = mixture.filter(s => {
-                        if(s.magnetic) removed.push(s.name); return !s.magnetic;
-                    }); break;
+        function addReagent(r) {
+            mixture.push(r);
+            for(let i=0; i<30; i++) particles.push(new Particle(r));
+            updateLogic();
+            notify(`${r.name} adicionado`);
+            if (window.innerWidth < 1100) switchTab('lab');
+        }
+
+        function updateLogic() {
+            const names = [...new Set(mixture.map(m => m.name))];
+            document.getElementById('mixture-details').innerText = names.length > 0 ? names.join(", ") : "---";
+            
+            const title = document.getElementById('mixture-title');
+            const badge = document.getElementById('classification-badge');
+            const bottomBadge = document.getElementById('bottom-badge-placeholder');
+
+            if (mixture.length === 0) {
+                title.innerText = "Vazio";
+                badge.innerHTML = "";
+                bottomBadge.innerHTML = "";
+                return;
             }
 
-            if(removed.length > 0) {
-                particles = particles.filter(p => !removed.includes(p.sub.name));
-                notify(`Separado: ${[...new Set(removed)].join(", ")}`);
-                updateLogic();
+            title.innerText = names.length > 1 ? "Mistura" : names[0];
+
+            let isHetero = false;
+            const hasPolar = mixture.some(m => m.type === 'polar' || m.type === 'soluble-polar');
+            const hasNonPolar = mixture.some(m => m.type === 'nonpolar');
+            const hasInsoluble = mixture.some(m => m.type === 'insoluble');
+
+            if ((hasPolar && hasNonPolar) || hasInsoluble) isHetero = true;
+
+            const badgeHTML = isHetero ? 
+                `<div class="class-badge state-hetero"><i data-lucide="layers"></i> Heterogênea</div>` : 
+                `<div class="class-badge state-homo"><i data-lucide="check-circle"></i> Homogênea</div>`;
+
+            badge.innerHTML = ""; // Limpa o HUD
+            bottomBadge.innerHTML = badgeHTML; // Move para baixo do béquere (como no screenshot)
+            lucide.createIcons();
+        }
+
+        function runTool(tool) {
+            if (mixture.length === 0) return;
+            let removedCount = 0;
+            let msg = "";
+
+            if (tool === 'filter') {
+                const initial = mixture.length;
+                mixture = mixture.filter(m => m.state !== 'solid' || m.type === 'soluble-polar');
+                removedCount = initial - mixture.length;
+                msg = "Sólidos insolúveis filtrados";
+            } else if (tool === 'decant') {
+                const initial = mixture.length;
+                mixture = mixture.filter(m => m.type !== 'nonpolar');
+                removedCount = initial - mixture.length;
+                msg = "Líquidos imiscíveis decantados";
+            } else if (tool === 'distill') {
+                mixture = [mixture[0]]; // Simplificação: sobra apenas o primeiro componente
+                msg = "Destilação concluída: substância pura";
+            } else if (tool === 'evap') {
+                mixture = mixture.filter(m => m.state === 'solid');
+                msg = "Líquidos evaporados: restam sólidos";
+            } else if (tool === 'magnet') {
+                const initial = mixture.length;
+                mixture = mixture.filter(m => !m.magnetic);
+                removedCount = initial - mixture.length;
+                msg = "Materiais magnéticos extraídos";
             }
+
+            particles = particles.filter(p => mixture.includes(p.reagent));
+            updateLogic();
+            notify(msg);
         }
 
         function loop() {
             ctx.clearRect(0, 0, w, h);
             
-            // Desenhar caminho do béquer para clipping
+            // Desenhar clipping do béquere
             ctx.save();
-            const r = 45; // Raio das quinas inferiores
+            const r = 50; 
             ctx.beginPath();
-            ctx.moveTo(0, 0);
-            ctx.lineTo(w, 0);
-            ctx.lineTo(w, h - r);
-            ctx.quadraticCurveTo(w, h, w - r, h);
+            ctx.moveTo(0,0); ctx.lineTo(w,0); ctx.lineTo(w, h-r);
+            ctx.quadraticCurveTo(w, h, w-r, h);
             ctx.lineTo(r, h);
-            ctx.quadraticCurveTo(0, h, 0, h - r);
+            ctx.quadraticCurveTo(0, h, 0, h-r);
             ctx.closePath();
             ctx.clip();
 
-            let liquidVol = mixture.filter(m=>m.state==='liquid').length;
-            let level = Math.min(liquidVol * 45, h - 30);
+            let vol = mixture.filter(m => m.state === 'liquid').length;
+            let level = Math.min(vol * 50, h - 30);
 
-            if(mixture.some(m=>m.type.includes('polar'))) {
-                let color = 'rgba(64,164,255,0.2)';
-                if(mixture.some(m=>m.id==='dye')) color = 'rgba(255,77,109,0.35)';
-                ctx.fillStyle = color;
+            if (mixture.some(m => m.type === 'polar' || m.type === 'soluble-polar')) {
+                ctx.fillStyle = 'rgba(64,164,255,0.2)';
                 ctx.fillRect(0, h-level, w, level);
             }
-            if(mixture.some(m=>m.type==='nonpolar')) {
-                ctx.fillStyle = 'rgba(255,220,64,0.5)';
-                let y = mixture.some(m=>m.type.includes('polar')) ? h-level-35 : h-35;
-                ctx.fillRect(0, y, w, 35);
+            if (mixture.some(m => m.type === 'nonpolar')) {
+                ctx.fillStyle = 'rgba(255,220,64,0.4)';
+                let y = mixture.some(m => m.type.includes('polar')) ? h-level-40 : h-40;
+                ctx.fillRect(0, y, w, 40);
             }
 
             particles.forEach(p => { p.update(level); p.draw(); });
@@ -518,47 +502,36 @@
             requestAnimationFrame(loop);
         }
 
-        function resetBeaker() { mixture = []; particles = []; curChallenge = null; updateLogic(); }
-        
-        function startChallenge() {
-            resetBeaker();
-            curChallenge = CHALLENGES[Math.floor(Math.random() * CHALLENGES.length)];
-            curChallenge.ingredients.forEach(id => {
-                const s = SUBSTANCES.find(sub => sub.id === id);
-                addSub(s);
-            });
-            notify(`Missão: ${curChallenge.title}`);
-            updateLogic();
-        }
-
-        function setTab(t) {
-            document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-            document.querySelectorAll('.tab-content, .tools-scroll, #tab-obs').forEach(c=>c.style.display='none');
-            document.querySelector(`[onclick="setTab('${t}')"]`).classList.add('active');
-            document.getElementById('tab-'+t).style.display='flex';
-        }
-        function notify(msg) {
-            const t = document.createElement('div'); t.className = 'toast';
-            t.style.cssText = "position:fixed; top:20px; left:50%; transform:translateX(-50%); background:var(--accent-cyan); color:var(--bg-deep); padding:12px 24px; border-radius:30px; font-weight:700; z-index:10000; box-shadow:0 10px 30px rgba(0,242,255,0.3);";
-            t.innerHTML = `<i data-lucide="zap"></i> ${msg}`; document.body.appendChild(t);
-            lucide.createIcons();
+        function switchTab(tab, btn) {
+            document.querySelectorAll('.panel, .workstation').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.mb-nav-link').forEach(el => el.classList.remove('active'));
             
-            const anim = gsap.from(t, { 
-                y: -40, opacity: 0, 
-                duration: 0.5, 
-                ease: "power2.out",
-                ...(window.matchMedia('(prefers-reduced-motion: reduce)').matches ? { y: 0, scale: 0.9 } : {})
-            });
+            if (btn) btn.classList.add('active');
+            else {
+                const mapping = { inventory: 0, lab: 1, tools: 2 };
+                document.querySelectorAll('.mb-nav-link')[mapping[tab]].classList.add('active');
+            }
 
-            setTimeout(() => {
-                gsap.to(t, { 
-                    opacity: 0, 
-                    onComplete: () => {
-                        anim.kill();
-                        t.remove();
-                    } 
-                });
-            }, 2500);
+            if (tab === 'lab') document.getElementById('workstation-view').classList.add('active');
+            else if (tab === 'inventory') document.getElementById('panel-inventory').classList.add('active');
+            else if (tab === 'tools') document.getElementById('panel-tools').classList.add('active');
+        }
+
+        function resetLab() {
+            mixture = [];
+            particles = [];
+            updateLogic();
+            notify("Laboratório limpo");
+        }
+
+        function notify(msg) {
+            const t = document.createElement('div');
+            t.style.cssText = "position:fixed; top:30px; left:50%; transform:translateX(-50%); background:var(--accent-cyan); color:var(--bg-deep); padding:14px 28px; border-radius:40px; font-weight:800; z-index:5000; box-shadow:0 10px 30px rgba(0,242,255,0.3); display:flex; align-items:center; gap:12px;";
+            t.innerHTML = `<i data-lucide="info"></i> ${msg}`;
+            document.body.appendChild(t);
+            lucide.createIcons();
+            gsap.from(t, { y: -50, opacity: 0, duration: 0.5 });
+            setTimeout(() => gsap.to(t, { opacity: 0, y: -20, onComplete: () => t.remove() }), 2000);
         }
 
         window.onload = init;
