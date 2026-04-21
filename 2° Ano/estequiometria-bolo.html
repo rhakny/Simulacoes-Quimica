@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>🎂 Laboratório do Bolo Perfeito</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #FFF8F0;
+    --warm: #FF6B35;
+    --warm2: #FF9A3C;
+    --gold: #FFD166;
+    --mint: #06D6A0;
+    --sky: #118AB2;
+    --violet: #9B5DE5;
+    --rose: #F72585;
+    --cream: #FFF3E0;
+    --card: #FFFFFF;
+    --text: #2D2D2D;
+    --muted: #888;
+    --red: #E63946;
+    --yellow: #F4A261;
+    --green: #2DC653;
+    --shadow: 0 4px 20px rgba(0,0,0,0.10);
+    --radius: 20px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ---- HEADER ---- */
+  header {
+    background: linear-gradient(135deg, var(--warm) 0%, var(--warm2) 60%, var(--gold) 100%);
+    padding: 14px 20px 12px;
+    text-align: center;
+    position: relative;
+    box-shadow: 0 4px 16px rgba(255,107,53,0.3);
+  }
+  header h1 {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.6rem;
+    color: #fff;
+    text-shadow: 2px 3px 0 rgba(0,0,0,0.15);
+    letter-spacing: 0.5px;
+  }
+  header p { font-size: 0.78rem; color: rgba(255,255,255,0.88); font-weight: 700; margin-top:2px; }
+  .score-bar {
+    display: flex; gap: 10px; justify-content: center; align-items: center;
+    margin-top: 10px; flex-wrap: wrap;
+  }
+  .score-chip {
+    background: rgba(255,255,255,0.25);
+    border: 1.5px solid rgba(255,255,255,0.5);
+    border-radius: 30px; padding: 4px 14px;
+    font-size: 0.8rem; font-weight: 800; color: #fff;
+    backdrop-filter: blur(4px);
+  }
+
+  /* ---- LEVEL NAV ---- */
+  .level-nav {
+    display: flex; gap: 6px; overflow-x: auto; padding: 12px 16px 6px;
+    scrollbar-width: none; -webkit-overflow-scrolling: touch;
+  }
+  .level-nav::-webkit-scrollbar { display: none; }
+  .lvl-btn {
+    flex-shrink: 0; padding: 7px 14px; border-radius: 30px; border: 2px solid transparent;
+    font-family: 'Nunito', sans-serif; font-size: 0.75rem; font-weight: 800;
+    cursor: pointer; transition: all .2s; white-space: nowrap;
+    background: #fff; color: var(--muted); border-color: #e0e0e0;
+  }
+  .lvl-btn.active { background: var(--warm); color: #fff; border-color: var(--warm); box-shadow: 0 3px 10px rgba(255,107,53,0.35); }
+  .lvl-btn.locked { opacity: 0.45; cursor: not-allowed; }
+  .lvl-btn.done { background: var(--mint); color: #fff; border-color: var(--mint); }
+
+  /* ---- CHALLENGE BOX ---- */
+  .challenge-box {
+    margin: 8px 16px; background: var(--card); border-radius: var(--radius);
+    padding: 14px 16px; box-shadow: var(--shadow);
+    border-left: 5px solid var(--violet);
+  }
+  .challenge-box h3 { font-size: 0.9rem; font-weight: 900; color: var(--violet); margin-bottom: 4px; }
+  .challenge-box p { font-size: 0.78rem; color: var(--muted); line-height: 1.4; }
+
+  /* ---- RECIPE EQUATION ---- */
+  .equation-card {
+    margin: 8px 16px; background: linear-gradient(135deg, #1a1a2e, #16213e);
+    border-radius: var(--radius); padding: 14px 16px; box-shadow: var(--shadow);
+  }
+  .equation-title { font-size: 0.72rem; font-weight: 800; color: var(--gold); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px; }
+  .equation-line {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 4px;
+    font-family: 'Fredoka One', cursive; font-size: 0.85rem; color: #fff;
+  }
+  .eq-token {
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 8px; padding: 4px 12px; display: flex; align-items: center; gap: 6px;
+    font-family: 'Fredoka One', cursive; font-size: 0.9rem;
+  }
+  .eq-token span { color: var(--gold); margin-right: 2px; }
+  .eq-symbol { font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 0.75rem; color: #fff; letter-spacing: 0.5px; opacity: 0.8; }
+  .eq-arrow { color: var(--gold); font-size: 1.4rem; padding: 0 4px; }
+  .eq-plus { color: rgba(255,255,255,0.4); }
+
+  /* ---- INGREDIENTS GRID ---- */
+  .section-label {
+    font-size: 0.72rem; font-weight: 900; letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--muted); margin: 14px 16px 8px; display: flex; align-items: center; gap: 6px;
+  }
+  .section-label::after { content:''; flex:1; height:1.5px; background:#e5e5e5; }
+  .ingredients-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+    padding: 0 16px;
+  }
+  .ing-card {
+    background: var(--card); border-radius: 16px; padding: 12px 10px;
+    box-shadow: var(--shadow); border: 2.5px solid transparent;
+    transition: border-color .3s, transform .15s; position: relative;
+  }
+  .ing-card.limiting { border-color: var(--red); animation: pulse-red .8s infinite alternate; }
+  .ing-card.excess { border-color: var(--yellow); }
+  .ing-card.perfect { border-color: var(--green); }
+  @keyframes pulse-red { from { box-shadow: 0 0 0 0 rgba(230,57,70,0.3); } to { box-shadow: 0 0 0 8px rgba(230,57,70,0); } }
+  .ing-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .ing-emoji { font-size: 1.8rem; }
+  .ing-info h4 { font-size: 0.78rem; font-weight: 900; }
+  .ing-info small { font-size: 0.65rem; color: var(--muted); }
+  .ing-counter { display: flex; align-items: center; justify-content: space-between; }
+  .cnt-btn {
+    width: 32px; height: 32px; border-radius: 50%; border: none; cursor: pointer;
+    font-size: 1.2rem; font-weight: 900; display: flex; align-items: center; justify-content: center;
+    transition: transform .1s; user-select: none;
+  }
+  .cnt-btn.minus { background: #FFE5E5; color: var(--red); }
+  .cnt-btn.plus  { background: #E5F9F0; color: var(--green); }
+  .cnt-btn:active { transform: scale(0.85); }
+  .cnt-val {
+    font-family: 'Fredoka One', cursive; font-size: 1.3rem;
+    color: var(--text); min-width: 44px; text-align: center;
+  }
+  .ing-ratio-bar { margin-top: 6px; height: 5px; background: #eee; border-radius: 10px; overflow: hidden; }
+  .ing-ratio-fill { height: 100%; border-radius: 10px; transition: width .4s, background .4s; }
+  .status-badge {
+    position: absolute; top: -8px; right: -8px;
+    font-size: 0.62rem; font-weight: 900; padding: 2px 8px;
+    border-radius: 20px; color: #fff;
+  }
+  .badge-limit { background: var(--red); }
+  .badge-excess { background: var(--yellow); color: #333; }
+  .badge-ok { background: var(--green); }
+
+  /* ---- BOWL PREVIEW ---- */
+  .bowl-section { padding: 14px 16px 0; }
+  .bowl-card {
+    background: var(--card); border-radius: var(--radius); padding: 16px;
+    box-shadow: var(--shadow); text-align: center;
+  }
+  .bowl-emoji { font-size: 4rem; display: block; transition: transform .3s; }
+  .bowl-emoji.shake { animation: shake .4s; }
+  @keyframes shake { 0%,100%{transform:rotate(0)} 25%{transform:rotate(-8deg)} 75%{transform:rotate(8deg)} }
+  .bowl-status { font-size: 0.8rem; font-weight: 800; color: var(--muted); margin-top: 4px; }
+  .bowl-recipes-preview {
+    display: flex; justify-content: center; gap: 8px; margin-top: 10px; flex-wrap: wrap;
+  }
+  .recipe-pill {
+    padding: 4px 12px; border-radius: 20px; font-size: 0.72rem; font-weight: 800;
+    background: var(--cream); color: var(--text); border: 1.5px solid #eee;
+  }
+
+  /* ---- MIX BUTTON ---- */
+  .mix-btn-wrap { padding: 14px 16px; }
+  .mix-btn {
+    width: 100%; padding: 16px; border-radius: 20px; border: none;
+    background: linear-gradient(135deg, var(--warm), var(--warm2));
+    color: #fff; font-family: 'Fredoka One', cursive; font-size: 1.3rem;
+    cursor: pointer; box-shadow: 0 6px 20px rgba(255,107,53,0.4);
+    transition: transform .15s, box-shadow .15s; letter-spacing: 0.5px;
+  }
+  .mix-btn:active { transform: scale(0.97); box-shadow: 0 3px 10px rgba(255,107,53,0.3); }
+  .mix-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* ---- X-RAY PANEL (MODAL) ---- */
+  .overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.65);
+    z-index: 100; display: flex; flex-direction: column;
+    align-items: center; justify-content: flex-end;
+    opacity: 0; pointer-events: none; transition: opacity .3s;
+    backdrop-filter: blur(4px);
+  }
+  .overlay.show { opacity: 1; pointer-events: all; }
+  .xray-panel {
+    background: #fff; width: 100%; max-width: 480px; border-radius: 24px 24px 0 0;
+    padding: 20px 18px 32px; max-height: 92vh; overflow-y: auto;
+    transform: translateY(100%); transition: transform .35s cubic-bezier(.2,.8,.3,1);
+    -webkit-overflow-scrolling: touch;
+  }
+  .overlay.show .xray-panel { transform: translateY(0); }
+  .xray-handle { width: 40px; height: 4px; background: #ddd; border-radius: 4px; margin: 0 auto 16px; }
+  .xray-title { font-family: 'Fredoka One', cursive; font-size: 1.3rem; color: var(--text); margin-bottom: 4px; text-align: center; }
+  .xray-subtitle { font-size: 0.75rem; color: var(--muted); text-align: center; margin-bottom: 16px; }
+  .result-hero {
+    text-align: center; padding: 20px; margin-bottom: 16px;
+    background: linear-gradient(135deg, var(--cream), #fff);
+    border-radius: 18px; border: 2px solid var(--gold);
+  }
+  .result-hero .cake-anim { font-size: 3.5rem; display: block; animation: bounce 0.6s ease infinite alternate; }
+  @keyframes bounce { from{transform:translateY(0)} to{transform:translateY(-8px)} }
+  .result-hero h2 { font-family: 'Fredoka One', cursive; font-size: 1.5rem; margin-top: 6px; }
+  .result-hero p { font-size: 0.8rem; color: var(--muted); }
+  .xray-section { margin-bottom: 16px; }
+  .xray-section-title {
+    font-size: 0.7rem; font-weight: 900; text-transform: uppercase; letter-spacing: 1.5px;
+    color: var(--muted); margin-bottom: 8px; display: flex; align-items: center; gap: 6px;
+  }
+  .xray-section-title span { flex:1; height:1px; background:#eee; }
+  /* proportion table */
+  .prop-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+  .prop-table th { font-size: 0.65rem; font-weight: 900; color: var(--muted); text-align: left; padding: 4px 6px; }
+  .prop-table td { padding: 6px 6px; border-bottom: 1px solid #f5f5f5; }
+  .prop-table tr:last-child td { border-bottom: none; }
+  .prop-bar-wrap { position: relative; height: 10px; background: #eee; border-radius: 10px; overflow:hidden; width:100px; }
+  .prop-bar-used { position:absolute; left:0; top:0; height:100%; border-radius:10px; transition: width .4s; }
+  .prop-bar-ideal { position:absolute; height:100%; background: rgba(0,0,0,0.15); width:2px; }
+  /* recipes possible */
+  .recipes-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
+  .recipe-card-mini {
+    background: #f8f8f8; border-radius: 14px; padding: 10px 8px; text-align: center;
+    border: 2px solid transparent; font-size: 0.75rem;
+  }
+  .recipe-card-mini.is-limit { border-color: var(--red); background: #FFF5F5; }
+  .recipe-card-mini .emoji { font-size: 1.3rem; display: block; }
+  .recipe-card-mini .name { font-weight: 800; font-size: 0.65rem; color: var(--muted); margin: 2px 0; }
+  .recipe-card-mini .count { font-family: 'Fredoka One', cursive; font-size: 1.1rem; color: var(--text); }
+  /* excess */
+  .excess-list { display: flex; flex-direction: column; gap: 6px; }
+  .excess-row { display: flex; align-items: center; gap: 10px; font-size: 0.78rem; }
+  .excess-row .emoji { font-size: 1.2rem; width: 28px; text-align: center; }
+  .excess-row .label { flex:1; font-weight: 700; }
+  .excess-row .amount { font-weight: 900; }
+  .excess-row .amount.zero { color: var(--green); }
+  .excess-row .amount.some { color: var(--yellow); }
+  /* efficiency */
+  .efficiency-ring-wrap { display: flex; justify-content: center; margin: 10px 0; }
+  .eff-circle { position: relative; width: 90px; height: 90px; }
+  .eff-svg { width: 90px; height: 90px; transform: rotate(-90deg); }
+  .eff-label {
+    position: absolute; inset:0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    font-family: 'Fredoka One', cursive; font-size: 1.1rem; color: var(--text);
+  }
+  .eff-label small { font-family: 'Nunito', sans-serif; font-size: 0.6rem; color: var(--muted); font-weight: 800; }
+  /* chem mode */
+  .chem-mode-toggle {
+    display: flex; gap: 8px; margin-bottom: 12px;
+  }
+  .mode-tab {
+    flex:1; padding: 8px; border-radius: 12px; border: 2px solid #e5e5e5;
+    font-size: 0.75rem; font-weight: 900; cursor: pointer; background: #fff; color: var(--muted);
+    transition: all .2s;
+  }
+  .mode-tab.active { background: linear-gradient(135deg, #1a1a2e, #16213e); color: var(--gold); border-color: transparent; }
+  .chem-equation-box {
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+    border-radius: 16px; padding: 16px; margin-bottom: 12px;
+  }
+  .chem-eq-line {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 5px;
+    font-family: 'Fredoka One', cursive;
+  }
+  .chem-token {
+    border-radius: 8px; padding: 5px 10px; font-size: 0.8rem;
+    border: 1.5px solid rgba(255,255,255,0.1);
+  }
+  .chem-token.balanced { background: rgba(6,214,160,0.25); color: #06D6A0; }
+  .chem-token.unbalanced { background: rgba(230,57,70,0.25); color: #ff6b6b; }
+  .chem-token.product { background: rgba(255,209,102,0.25); color: var(--gold); }
+  .chem-plus, .chem-arrow { color: rgba(255,255,255,0.4); font-family: 'Nunito', sans-serif; }
+  .chem-arrow { color: var(--gold); }
+  /* balance visual */
+  .balance-bars { display: flex; flex-direction: column; gap: 6px; }
+  .bal-row { display: flex; align-items: center; gap: 8px; font-size: 0.72rem; }
+  .bal-label { width: 60px; font-weight: 800; color: var(--muted); font-size: 0.65rem; }
+  .bal-bar-wrap { flex:1; height: 12px; background: #eee; border-radius: 8px; overflow:hidden; position:relative; }
+  .bal-fill { height:100%; border-radius:8px; transition: width .5s; }
+  .bal-val { width: 35px; text-align:right; font-weight: 900; font-size: 0.68rem; }
+  /* score display */
+  .score-display {
+    background: linear-gradient(135deg, var(--gold), var(--warm2));
+    border-radius: 18px; padding: 16px; text-align: center; margin-bottom: 12px;
+  }
+  .score-display .pts { font-family: 'Fredoka One', cursive; font-size: 2rem; color: #fff; }
+  .score-display .pts-label { font-size: 0.72rem; font-weight: 900; color: rgba(255,255,255,0.8); }
+  .score-breakdown { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 8px; }
+  .score-item { background: rgba(255,255,255,0.25); border-radius: 10px; padding: 6px 8px; }
+  .score-item .s-label { font-size: 0.62rem; color: rgba(255,255,255,0.8); font-weight: 800; }
+  .score-item .s-val { font-family: 'Fredoka One', cursive; font-size: 1rem; color: #fff; }
+  /* close btn */
+  .close-xray {
+    width: 100%; padding: 14px; border-radius: 16px; border: none;
+    background: linear-gradient(135deg, var(--warm), var(--warm2));
+    color: #fff; font-family: 'Fredoka One', cursive; font-size: 1.1rem;
+    cursor: pointer; margin-top: 8px; box-shadow: 0 4px 14px rgba(255,107,53,0.35);
+  }
+
+  /* ---- PREDICTION INPUT (level 6) ---- */
+  .predict-section { padding: 0 16px; margin-bottom: 10px; }
+  .predict-card { background: var(--card); border-radius: 16px; padding: 12px 14px; box-shadow: var(--shadow); border: 2px dashed var(--violet); }
+  .predict-card h4 { font-size: 0.8rem; font-weight: 900; color: var(--violet); margin-bottom: 8px; }
+  .predict-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 6px; }
+  .predict-btn {
+    padding: 8px 4px; border-radius: 10px; border: 2px solid #eee;
+    font-size: 0.7rem; font-weight: 800; cursor: pointer; background: #fff;
+    color: var(--muted); text-align: center; transition: all .2s;
+  }
+  .predict-btn.selected { background: var(--violet); color: #fff; border-color: var(--violet); }
+  .predict-btn .p-emoji { font-size: 1.1rem; display: block; }
+
+  /* ---- TOAST ---- */
+  .toast {
+    position: fixed; top: 80px; left: 50%; transform: translateX(-50%) translateY(-20px);
+    background: var(--text); color: #fff; padding: 10px 20px; border-radius: 30px;
+    font-size: 0.8rem; font-weight: 800; opacity: 0; pointer-events: none;
+    transition: opacity .3s, transform .3s; z-index: 200; white-space: nowrap;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* ---- CONFETTI ---- */
+  .confetti-wrap { position: fixed; inset:0; pointer-events:none; z-index:300; }
+  .conf-dot {
+    position: absolute; width: 8px; height: 8px; border-radius: 50%;
+    animation: conf-fall linear forwards;
+  }
+  @keyframes conf-fall {
+    from { opacity:1; transform: translateY(-20px) rotate(0deg); }
+    to   { opacity:0; transform: translateY(100vh) rotate(720deg); }
+  }
+
+  /* ---- SCROLLBAR ---- */
+  .xray-panel::-webkit-scrollbar { width: 4px; }
+  .xray-panel::-webkit-scrollbar-thumb { background: #ddd; border-radius: 4px; }
+
+  /* ---- RESPONSIVE ---- */
+  @media (max-width: 380px) {
+    header h1 { font-size: 1.3rem; }
+    .ingredients-grid { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <h1>🧪 Laboratório do Bolo Perfeito</h1>
+  <p>Estequiometria Gamificada — Prof. Confeiteiro</p>
+  <div class="score-bar">
+    <div class="score-chip" id="scoreChip">⭐ 0 pts</div>
+    <div class="score-chip" id="cakesChip">🎂 0 bolos</div>
+    <div class="score-chip" id="levelChip">Nível 1</div>
+  </div>
+</header>
+
+<!-- LEVEL NAV -->
+<div class="level-nav" id="levelNav"></div>
+
+<!-- CHALLENGE BOX -->
+<div class="challenge-box" id="challengeBox">
+  <h3 id="challengeTitle">🎯 Tutorial: Siga a Receita!</h3>
+  <p id="challengeDesc">Adicione os ingredientes na proporção exata da receita base para 1 porção e clique em Misturar!</p>
+</div>
+
+<!-- EQUATION CARD -->
+<div class="equation-card">
+  <div class="equation-title">⚗️ Equação Balanceada da Receita</div>
+  <div class="equation-line">
+    <div class="eq-token"><span>1</span><div class="eq-symbol">Ov</div></div>
+    <div class="eq-plus">+</div>
+    <div class="eq-token"><span>3</span><div class="eq-symbol">Ol</div></div>
+    <div class="eq-plus">+</div>
+    <div class="eq-token"><span>4</span><div class="eq-symbol">Le</div></div>
+    <div class="eq-plus">+</div>
+    <div class="eq-token"><span>4</span><div class="eq-symbol">Ac</div></div>
+    <div class="eq-plus">+</div>
+    <div class="eq-token"><span>5</span><div class="eq-symbol">Fa</div></div>
+    <div class="eq-plus">+</div>
+    <div class="eq-token"><span>1</span><div class="eq-symbol">Fe</div></div>
+    <div class="eq-arrow">→</div>
+    <div class="eq-token" style="background:rgba(255,209,102,0.15);border-color:rgba(255,209,102,0.4)"><span>1</span><div class="eq-symbol" style="color:var(--gold);opacity:1">Bolo</div></div>
+  </div>
+</div>
+
+<!-- PREDICTION (level 6 only) -->
+<div class="predict-section" id="predictSection" style="display:none">
+  <div class="predict-card">
+    <h4>🔮 Preveja o Reagente Limitante!</h4>
+    <div class="predict-grid" id="predictGrid"></div>
+  </div>
+</div>
+
+<!-- INGREDIENTS -->
+<div class="section-label">🥣 Ingredientes na Bancada</div>
+<div class="ingredients-grid" id="ingredientsGrid"></div>
+
+<!-- BOWL PREVIEW -->
+<div class="bowl-section">
+  <div class="bowl-card">
+    <span class="bowl-emoji" id="bowlEmoji">🥣</span>
+    <div class="bowl-status" id="bowlStatus">Adicione ingredientes...</div>
+    <div class="bowl-recipes-preview" id="bowlPreview"></div>
+  </div>
+</div>
+
+<!-- MIX BUTTON -->
+<div class="mix-btn-wrap">
+  <button class="mix-btn" id="mixBtn" onclick="openXray()">⚗️ Misturar & Analisar!</button>
+</div>
+
+<!-- XRAY MODAL -->
+<div class="overlay" id="xrayOverlay" onclick="closeXrayOutside(event)">
+  <div class="xray-panel" id="xrayPanel">
+    <div class="xray-handle"></div>
+    <div class="xray-title" id="xrayTitle">🔬 Raio-X Estequiométrico</div>
+    <div class="xray-subtitle" id="xraySubtitle">Analisando suas proporções...</div>
+
+    <!-- Result Hero -->
+    <div class="result-hero" id="resultHero">
+      <span class="cake-anim" id="resultEmoji">🎂</span>
+      <h2 id="resultHeadline">Bolo Perfeito!</h2>
+      <p id="resultDesc">Proporções corretas!</p>
+    </div>
+
+    <!-- Score -->
+    <div class="score-display" id="scoreDisplay">
+      <div class="pts" id="scorePoints">+0</div>
+      <div class="pts-label">PONTOS GANHOS</div>
+      <div class="score-breakdown" id="scoreBreakdown"></div>
+    </div>
+
+    <!-- Mode Tabs -->
+    <div class="chem-mode-toggle">
+      <button class="mode-tab active" id="tabNormal" onclick="switchMode('normal')">🍰 Modo Receita</button>
+      <button class="mode-tab" id="tabChem" onclick="switchMode('chem')">⚗️ Modo Químico</button>
+    </div>
+
+    <!-- NORMAL MODE -->
+    <div id="modeNormal">
+      <!-- Proportion -->
+      <div class="xray-section">
+        <div class="xray-section-title">📊 Proporção Ideal vs Usada <span></span></div>
+        <table class="prop-table" id="propTable">
+          <tr><th>Ingrediente</th><th>Ideal</th><th>Usado</th><th>Proporção</th></tr>
+        </table>
+      </div>
+      <!-- Recipes possible -->
+      <div class="xray-section">
+        <div class="xray-section-title">⚖️ Receitas Possíveis por Ingrediente <span></span></div>
+        <div class="recipes-grid" id="recipesGrid"></div>
+      </div>
+      <!-- Excess -->
+      <div class="xray-section">
+        <div class="xray-section-title">🟡 Sobras na Bancada <span></span></div>
+        <div class="excess-list" id="excessList"></div>
+      </div>
+      <!-- Efficiency -->
+      <div class="xray-section">
+        <div class="xray-section-title">📈 Eficiência de Aproveitamento <span></span></div>
+        <div class="efficiency-ring-wrap">
+          <div class="eff-circle">
+            <svg class="eff-svg" viewBox="0 0 90 90">
+              <circle cx="45" cy="45" r="38" fill="none" stroke="#eee" stroke-width="10"/>
+              <circle id="effCircle" cx="45" cy="45" r="38" fill="none" stroke="var(--mint)" stroke-width="10"
+                stroke-dasharray="238.76" stroke-dashoffset="238.76" stroke-linecap="round"
+                style="transition: stroke-dashoffset 1s ease;"/>
+            </svg>
+            <div class="eff-label"><span id="effPct">0%</span><small>eficiência</small></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHEM MODE -->
+    <div id="modeChem" style="display:none">
+      <div class="xray-section">
+        <div class="xray-section-title">🧪 Equação Química do Bolo <span></span></div>
+        <div class="chem-equation-box" id="chemEquationBox"></div>
+      </div>
+      <div class="xray-section">
+        <div class="xray-section-title">⚖️ Balanceamento Visual <span></span></div>
+        <div class="balance-bars" id="balanceBars"></div>
+      </div>
+      <div class="xray-section" style="background:#f8f8f8; border-radius:14px; padding:12px; margin-top:8px;">
+        <div style="font-size:0.72rem; color:var(--muted); font-weight:700; margin-bottom:6px;">💡 Legenda</div>
+        <div style="font-size:0.72rem; color:var(--muted); line-height:1.6;">
+          <b style="color:var(--mint)">Verde</b> = ingrediente na proporção certa &nbsp;|&nbsp;
+          <b style="color:#ff6b6b">Vermelho</b> = reagente limitante &nbsp;|&nbsp;
+          <b style="color:var(--gold)">Dourado</b> = produto (bolo)
+        </div>
+      </div>
+    </div>
+
+    <button class="close-xray" onclick="closeXray()">✅ Próxima Tentativa</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+<!-- CONFETTI -->
+<div class="confetti-wrap" id="confettiWrap"></div>
+
+<script>
+// ===================== DATA =====================
+const INGREDIENTS = [
+  { key:'ovo',      name:'Ovos',         emoji:'🥚', unit:'und',   base:1,   min:0, max:30, sym:'Ov' },
+  { key:'oleo',     name:'Óleo',         emoji:'🫙', unit:'col.s', base:3,   min:0, max:40, sym:'Ol' },
+  { key:'leite',    name:'Leite',        emoji:'🥛', unit:'col.s', base:4,   min:0, max:50, sym:'Le' },
+  { key:'acucar',   name:'Açúcar',       emoji:'🍬', unit:'col.s', base:4,   min:0, max:50, sym:'Ac' },
+  { key:'farinha',  name:'Farinha',      emoji:'🌾', unit:'col.s', base:5,   min:0, max:60, sym:'Fa' },
+  { key:'fermento', name:'Fermento',     emoji:'🧂', unit:'col.s', base:1,   min:0, max:20, sym:'Fe' },
+];
+
+const LEVELS = [
+  { id:1, name:'1. Tutorial',       title:'🎯 Tutorial: Siga a Receita!',          desc:'Adicione os ingredientes na proporção exata: 1 Ov + 3 Ol + 4 Le + 4 Ac + 5 Fa + 1 Fe.', target:{ovo:1,oleo:3,leite:4,acucar:4,farinha:5,fermento:1}, minEff:99 },
+  { id:2, name:'2. Limitante',      title:'🔴 Prova do Reagente Limitante!',      desc:'Aumente o Açúcar para 20, mas mantenha os outros em 1 porção. O que acontece?', target:null, minEff:0 },
+  { id:3, name:'3. Alta Produção',  title:'🏆 Rendimento Industrial!',              desc:'Fabrique exatamente 2 bolos inteiros sem sobras. Calcule as quantidades!', target:{ovo:2,oleo:6,leite:8,acucar:8,farinha:10,fermento:2}, minEff:99 },
+  { id:4, name:'4. Eficiência 100%',title:'🟢 Desperdício Zero!',                   desc:'Qualquer quantidade vale, desde que a Eficiência seja 100%!', target:null, minEff:99 },
+  { id:5, name:'5. Estoque Caótico',title:'🌀 Planejamento de Sobras!',              desc:'Estoque aleatório disponível. Calcule o limitante para não sobrar nenhum grão de Farinha!', target:null, chaos:true, checkFarina:true, minEff:0 },
+  { id:6, name:'6. Sniper de Bolo', title:'🔮 Previsão de Desastre!',               desc:'Identifique o ingrediente em falta antes de misturar para ganhar bônus!', target:null, predict:true, minEff:0 },
+  { id:7, name:'7. Order: 2.5 Bolos',title:'⚖️ Encomenda Fracionada!',              desc:'O cliente quer exatamente 2.5 bolos. Descubra as medidas corretas (Flutuantes permitidos!).', target:{ovo:2.5,oleo:7.5,leite:10,acucar:10,farinha:12.5,fermento:2.5}, minEff:99 },
+  { id:8, name:'8. Master Chef',    title:'👨‍🍳 O Desafio Final!',                  desc:'Produza a maior quantidade possível com todos os ingredientes na bancada (Máx 30 por item).', target:null, minEff:99.9, minCakes:5 },
+];
+
+let state = {
+  level: 1,
+  score: 0,
+  cakes: 0,
+  completed: new Set(),
+  vals: {},
+  predicted: null,
+  chaosMax: {},
+};
+
+// Init values
+INGREDIENTS.forEach(i => { state.vals[i.key] = 0; });
+
+// Update BASE
+const BASE = { ovo:1, oleo:3, leite:4, acucar:4, farinha:5, fermento:1 };
+
+// ===================== UI =====================
+function buildLevelNav() {
+  const nav = document.getElementById('levelNav');
+  nav.innerHTML = '';
+  LEVELS.forEach(lv => {
+    const btn = document.createElement('button');
+    btn.className = 'lvl-btn' + (lv.id === state.level ? ' active' : '') + (state.completed.has(lv.id) ? ' done' : '');
+    btn.textContent = (state.completed.has(lv.id) ? '✅ ' : '') + lv.name;
+    btn.onclick = () => setLevel(lv.id);
+    nav.appendChild(btn);
+  });
+}
+
+function setLevel(id) {
+  state.level = id;
+  state.predicted = null;
+  const lv = LEVELS[id-1];
+  INGREDIENTS.forEach(i => { state.vals[i.key] = 0; });
+
+  if (lv.chaos) {
+    // random available amounts pre-filled
+    INGREDIENTS.forEach(i => {
+      const rnd = Math.floor(Math.random()*15) + 5;
+      state.chaosMax[i.key] = rnd + 5; // allow some room to add more
+      state.vals[i.key] = rnd;
+    });
+    showToast(`🌀 Ingredientes distribuídos na bancada!`);
+  }
+  if (lv.target) {
+    // pre-hint: show target in tooltip?
+  }
+
+  document.getElementById('challengeTitle').textContent = lv.title;
+  document.getElementById('challengeDesc').textContent = lv.desc;
+  document.getElementById('predictSection').style.display = lv.predict ? 'block' : 'none';
+
+  buildIngredients();
+  buildLevelNav();
+  updateBowl();
+  if (lv.predict) buildPredictGrid();
+  document.getElementById('levelChip').textContent = `Nível ${id}`;
+}
+
+function buildIngredients() {
+  const grid = document.getElementById('ingredientsGrid');
+  grid.innerHTML = '';
+  const lv = LEVELS[state.level-1];
+  INGREDIENTS.forEach(ing => {
+    const maxVal = lv.chaos ? state.chaosMax[ing.key] : ing.max;
+    const card = document.createElement('div');
+    card.className = 'ing-card';
+    card.id = `card-${ing.key}`;
+    card.innerHTML = `
+      <div class="ing-header">
+        <div class="ing-emoji">${ing.emoji}</div>
+        <div class="ing-info">
+          <h4>${ing.name}</h4>
+          <div style="display:flex; flex-direction:column; gap:1px;">
+            <small>Receita: <b>${ing.base} ${ing.unit}</b></small>
+            <small style="color:var(--sky)">Estoque Máx: ${maxVal}</small>
+          </div>
+        </div>
+      </div>
+      <div class="ing-counter">
+        <button class="cnt-btn minus" onclick="adjust('${ing.key}',-0.5,${maxVal})">−</button>
+        <div class="cnt-val" id="val-${ing.key}">${state.vals[ing.key]}</div>
+        <button class="cnt-btn plus" onclick="adjust('${ing.key}',0.5,${maxVal})">+</button>
+      </div>
+      <div class="ing-ratio-bar"><div class="ing-ratio-fill" id="bar-${ing.key}" style="width:0%;background:var(--mint)"></div></div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+function buildPredictGrid() {
+  const grid = document.getElementById('predictGrid');
+  grid.innerHTML = '';
+  INGREDIENTS.forEach(ing => {
+    const btn = document.createElement('button');
+    btn.className = 'predict-btn' + (state.predicted === ing.key ? ' selected' : '');
+    btn.id = `pred-${ing.key}`;
+    btn.innerHTML = `<span class="p-emoji">${ing.emoji}</span>${ing.name}`;
+    btn.onclick = () => { state.predicted = ing.key; buildPredictGrid(); };
+    grid.appendChild(btn);
+  });
+}
+
+function adjust(key, delta, maxVal) {
+  state.vals[key] = Math.max(0, Math.min(maxVal, state.vals[key] + delta));
+  document.getElementById(`val-${key}`).textContent = state.vals[key] % 1 !== 0 ? state.vals[key].toFixed(1) : state.vals[key];
+  updateBowl();
+}
+
+// ===================== STOICHIOMETRY =====================
+function calcStoich() {
+  const recipesPossible = {};
+  INGREDIENTS.forEach(ing => {
+    recipesPossible[ing.key] = state.vals[ing.key] / BASE[ing.key];
+  });
+  const minRecipes = Math.min(...Object.values(recipesPossible));
+  const limitingKeys = Object.keys(recipesPossible).filter(k => recipesPossible[k] === minRecipes);
+
+  const excess = {};
+  INGREDIENTS.forEach(ing => {
+    excess[ing.key] = state.vals[ing.key] - minRecipes * BASE[ing.key];
+  });
+
+  const totalUsed = INGREDIENTS.reduce((s, ing) => s + state.vals[ing.key], 0);
+  const totalIngUsed = INGREDIENTS.reduce((s, ing) => s + (minRecipes * BASE[ing.key]), 0);
+  const efficiency = totalUsed > 0 ? (totalIngUsed / totalUsed) * 100 : 0;
+
+  return { recipesPossible, minRecipes, limitingKeys, excess, efficiency };
+}
+
+function updateBowl() {
+  const { recipesPossible, minRecipes, limitingKeys, excess, efficiency } = calcStoich();
+  const total = Object.values(state.vals).reduce((a,b)=>a+b,0);
+
+  // Update cards
+  INGREDIENTS.forEach(ing => {
+    const card = document.getElementById(`card-${ing.key}`);
+    const bar = document.getElementById(`bar-${ing.key}`);
+    if (!card) return;
+    card.className = 'ing-card';
+    const existingBadge = card.querySelector('.status-badge');
+    if (existingBadge) existingBadge.remove();
+
+    if (total === 0) { bar.style.width = '0%'; return; }
+
+    const needed = BASE[ing.key] * Math.max(minRecipes, 1);
+    const ratio = state.vals[ing.key] / needed;
+    const pct = Math.min(100, ratio * 100);
+    bar.style.width = pct + '%';
+
+    if (limitingKeys.includes(ing.key) && state.vals[ing.key] > 0) {
+      card.classList.add('limiting');
+      bar.style.background = 'var(--red)';
+      const badge = document.createElement('div');
+      badge.className = 'status-badge badge-limit';
+      badge.textContent = '🔴 LIMITANTE';
+      card.appendChild(badge);
+    } else if (state.vals[ing.key] > needed + 0.001) {
+      card.classList.add('excess');
+      bar.style.background = 'var(--yellow)';
+      const badge = document.createElement('div');
+      badge.className = 'status-badge badge-excess';
+      badge.textContent = `🟡 EXCESSO: +${(state.vals[ing.key] - needed).toFixed(1)}`;
+      card.appendChild(badge);
+    } else if (state.vals[ing.key] > 0) {
+      card.classList.add('perfect');
+      bar.style.background = 'var(--green)';
+    } else {
+      bar.style.background = '#eee';
+    }
+  });
+
+  // Bowl
+  const bowl = document.getElementById('bowlEmoji');
+  const bowlStatus = document.getElementById('bowlStatus');
+  const preview = document.getElementById('bowlPreview');
+  preview.innerHTML = '';
+
+  if (total === 0) {
+    bowl.textContent = '🥣'; bowlStatus.textContent = 'Adicione ingredientes...';
+  } else if (minRecipes === 0) {
+    bowl.textContent = '❌'; bowlStatus.textContent = 'Faltam ingredientes essenciais!';
+  } else {
+    bowl.textContent = minRecipes >= 2 ? '🎂' : '🥣';
+    bowlStatus.textContent = `≈ ${minRecipes.toFixed(2)} porções — Ef: ${efficiency.toFixed(0)}%`;
+    INGREDIENTS.forEach(ing => {
+      const pill = document.createElement('div');
+      pill.className = 'recipe-pill';
+      pill.textContent = `${ing.emoji} ${recipesPossible[ing.key].toFixed(1)}`;
+      preview.appendChild(pill);
+    });
+  }
+}
+
+// ===================== XRAY =====================
+let currentMode = 'normal';
+
+function switchMode(mode) {
+  currentMode = mode;
+  document.getElementById('modeNormal').style.display = mode === 'normal' ? 'block' : 'none';
+  document.getElementById('modeChem').style.display   = mode === 'chem'   ? 'block' : 'none';
+  document.getElementById('tabNormal').className = 'mode-tab' + (mode==='normal'?' active':'');
+  document.getElementById('tabChem').className   = 'mode-tab' + (mode==='chem'?'   active':'');
+}
+
+function openXray() {
+  const total = Object.values(state.vals).reduce((a,b)=>a+b,0);
+  if (total === 0) { showToast('⚠️ Adicione ingredientes primeiro!'); return; }
+
+  const { recipesPossible, minRecipes, limitingKeys, excess, efficiency } = calcStoich();
+  const lv = LEVELS[state.level-1];
+
+  // Shake bowl
+  const bowl = document.getElementById('bowlEmoji');
+  bowl.classList.add('shake');
+  setTimeout(() => bowl.classList.remove('shake'), 500);
+
+  // Score calc
+  let pts = 0, scoreItems = [];
+  const isLimitFound = limitingKeys.length > 0 && limitingKeys[0] !== '';
+  const basePts = Math.floor(minRecipes * 100);
+  pts += basePts;
+  scoreItems.push({ label:'🎂 Rendimento', val: `+${basePts}` });
+
+  const effBonus = Math.floor(efficiency / 10) * 5;
+  if (effBonus > 0) { pts += effBonus; scoreItems.push({ label:'📈 Eficiência', val:`+${effBonus}` }); }
+
+  if (lv.predict && state.predicted && limitingKeys.includes(state.predicted)) {
+    pts += 150;
+    scoreItems.push({ label:'🔮 Previsão certa!', val:'+150' });
+  }
+
+  if (lv.target) {
+    let match = true;
+    Object.keys(lv.target).forEach(k => {
+      if (Math.abs(state.vals[k] - lv.target[k]) > 0.1) match = false;
+    });
+    if (match) {
+      pts += 200;
+      scoreItems.push({ label:'✅ Receita perfeita!', val:'+200' });
+      if (!state.completed.has(lv.id)) { state.completed.add(lv.id); }
+    }
+  } else {
+    if (efficiency > 98) {
+      if (!state.completed.has(lv.id)) { state.completed.add(lv.id); }
+    }
+  }
+
+  state.score += pts;
+  state.cakes += Math.floor(minRecipes);
+  document.getElementById('scoreChip').textContent = `⭐ ${state.score} pts`;
+  document.getElementById('cakesChip').textContent = `🎂 ${state.cakes} bolos`;
+  buildLevelNav();
+
+  // Result hero
+  let emoji = '🎂', headline = '', descText = '';
+  if (minRecipes === 0) {
+    emoji = '💥'; headline = 'Receita Falhou!'; descText = 'Algum ingrediente essencial está zerado.';
+  } else if (efficiency > 98) {
+    emoji = '⭐🎂⭐'; headline = 'Bolo Perfeito!'; descText = `${minRecipes.toFixed(2)} porções. Eficiência máxima!`;
+    if (minRecipes > 0) launchConfetti();
+  } else if (efficiency > 70) {
+    emoji = '🎂'; headline = `${minRecipes.toFixed(1)} Porções!`; descText = `Boa! Mas há sobras. Ef: ${efficiency.toFixed(0)}%`;
+  } else {
+    emoji = '🥣'; headline = `${minRecipes.toFixed(1)} Porções`; descText = `Muitas sobras. Ef: ${efficiency.toFixed(0)}%`;
+  }
+  document.getElementById('resultEmoji').textContent = emoji;
+  document.getElementById('resultHeadline').textContent = headline;
+  document.getElementById('resultDesc').textContent = descText;
+
+  // Score display
+  document.getElementById('scorePoints').textContent = `+${pts}`;
+  const sb = document.getElementById('scoreBreakdown');
+  sb.innerHTML = scoreItems.map(s => `<div class="score-item"><div class="s-label">${s.label}</div><div class="s-val">${s.val}</div></div>`).join('');
+
+  // Proportion table
+  const pt = document.getElementById('propTable');
+  pt.innerHTML = '<tr><th>🍳 Ingrediente</th><th>Ideal×N</th><th>Usado</th><th>Barra</th></tr>';
+  INGREDIENTS.forEach(ing => {
+    const idealVal = BASE[ing.key] * minRecipes;
+    const used = state.vals[ing.key];
+    const pct = minRecipes > 0 ? Math.min(100, (used / idealVal)*100) : 0;
+    const color = limitingKeys.includes(ing.key) ? 'var(--red)' : (used > idealVal+0.01 ? 'var(--yellow)' : 'var(--mint)');
+    pt.innerHTML += `<tr>
+      <td>${ing.emoji} ${ing.name}</td>
+      <td>${idealVal % 1!==0?idealVal.toFixed(2):idealVal}</td>
+      <td>${used % 1!==0?used.toFixed(2):used}</td>
+      <td><div class="prop-bar-wrap" style="width:80px"><div class="prop-bar-used" style="width:${pct}%;background:${color}"></div><div class="prop-bar-ideal" style="left:${Math.min(100,pct)}%"></div></div></td>
+    </tr>`;
+  });
+
+  // Recipes grid
+  const rg = document.getElementById('recipesGrid');
+  rg.innerHTML = '';
+  INGREDIENTS.forEach(ing => {
+    const rp = recipesPossible[ing.key];
+    const isLim = limitingKeys.includes(ing.key);
+    const div = document.createElement('div');
+    div.className = 'recipe-card-mini' + (isLim ? ' is-limit' : '');
+    div.innerHTML = `<span class="emoji">${ing.emoji}</span><div class="name">${ing.name}</div><div class="count" style="color:${isLim?'var(--red)':'var(--text)'}">${rp.toFixed(2)}</div>${isLim?'<div style="font-size:0.6rem;color:var(--red);font-weight:900;margin-top:2px">🔴 LIMITANTE</div>':''}`;
+    rg.appendChild(div);
+  });
+
+  // Excess list
+  const el = document.getElementById('excessList');
+  el.innerHTML = '';
+  INGREDIENTS.forEach(ing => {
+    const ex = excess[ing.key];
+    const row = document.createElement('div');
+    row.className = 'excess-row';
+    row.innerHTML = `<span class="emoji">${ing.emoji}</span><span class="label">${ing.name}</span><span class="amount ${ex<0.01?'zero':'some'}">${ex<0.01?'✅ Sem sobra':`+${ex%1!==0?ex.toFixed(2):ex} ${ing.unit}`}</span>`;
+    el.appendChild(row);
+  });
+
+  // Efficiency circle
+  const circumference = 238.76;
+  const offset = circumference - (efficiency / 100) * circumference;
+  setTimeout(() => {
+    document.getElementById('effCircle').style.strokeDashoffset = offset;
+    document.getElementById('effCircle').style.stroke = efficiency > 90 ? 'var(--mint)' : efficiency > 60 ? 'var(--gold)' : 'var(--red)';
+  }, 300);
+  document.getElementById('effPct').textContent = efficiency.toFixed(0) + '%';
+
+  // Chem mode
+  buildChemMode(recipesPossible, minRecipes, limitingKeys, efficiency);
+
+  // Predict feedback
+  if (lv.predict && state.predicted) {
+    if (limitingKeys.includes(state.predicted)) {
+      showToast('🔮 Previsão correta! +150 pts!');
+    } else {
+      showToast(`❌ Limitante era: ${INGREDIENTS.find(i=>i.key===limitingKeys[0])?.name}`);
+    }
+  }
+
+  // Reset efficiency circle
+  document.getElementById('effCircle').style.strokeDashoffset = circumference;
+  currentMode = 'normal';
+  switchMode('normal');
+
+  document.getElementById('xrayOverlay').classList.add('show');
+}
+
+function buildChemMode(recipesPossible, minRecipes, limitingKeys, efficiency) {
+  // Equation
+  const box = document.getElementById('chemEquationBox');
+  const reactants = INGREDIENTS.map(ing => {
+    const coeff = state.vals[ing.key] % 1 !== 0 ? state.vals[ing.key].toFixed(2) : state.vals[ing.key];
+    const isLim = limitingKeys.includes(ing.key);
+    const isExcess = !isLim && state.vals[ing.key] > BASE[ing.key]*minRecipes+0.01;
+    const cls = isLim ? 'unbalanced' : (isExcess ? '' : 'balanced');
+    return `<div class="chem-token ${cls}">${coeff}${ing.sym}</div>`;
+  }).join(`<span class="chem-plus"> + </span>`);
+
+  const prodCoeff = minRecipes % 1 !== 0 ? minRecipes.toFixed(2) : minRecipes;
+  box.innerHTML = `
+    <div style="color:rgba(255,255,255,0.5);font-size:0.65rem;font-weight:800;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Equação Real da Mistura:</div>
+    <div class="chem-eq-line">${reactants}<span class="chem-arrow">→</span><div class="chem-token product">${prodCoeff} [Bolo]</div></div>
+    <div style="margin-top:10px;color:rgba(255,255,255,0.5);font-size:0.65rem;font-weight:800;text-transform:uppercase;letter-spacing:1px;">Equação Balanceada (Referência):</div>
+    <div class="chem-eq-line" style="margin-top:6px">
+      <div class="chem-token balanced">1[Ov]</div><span class="chem-plus"> + </span>
+      <div class="chem-token balanced">3[Ol]</div><span class="chem-plus"> + </span>
+      <div class="chem-token balanced">4[Le]</div><span class="chem-plus"> + </span>
+      <div class="chem-token balanced">4[Ac]</div><span class="chem-plus"> + </span>
+      <div class="chem-token balanced">5[Fa]</div><span class="chem-plus"> + </span>
+      <div class="chem-token balanced">1[Fe]</div>
+      <span class="chem-arrow">→</span>
+      <div class="chem-token product">1[Bolo]</div>
+    </div>`;
+
+  // Balance bars
+  const bb = document.getElementById('balanceBars');
+  bb.innerHTML = '';
+  INGREDIENTS.forEach(ing => {
+    const rp = recipesPossible[ing.key];
+    const pct = Math.min(100, (rp / (minRecipes || 1)) * 100);
+    const isLim = limitingKeys.includes(ing.key);
+    const color = isLim ? '#ff6b6b' : (pct > 100.5 ? 'var(--yellow)' : 'var(--mint)');
+    const row = document.createElement('div');
+    row.className = 'bal-row';
+    row.innerHTML = `
+      <div class="bal-label">${ing.emoji} ${ing.sym}</div>
+      <div class="bal-bar-wrap"><div class="bal-fill" style="width:0%;background:${color}" data-pct="${Math.min(100,pct)}"></div></div>
+      <div class="bal-val" style="color:${color}">${rp.toFixed(1)}x</div>`;
+    bb.appendChild(row);
+  });
+
+  setTimeout(() => {
+    document.querySelectorAll('.bal-fill').forEach(f => {
+      f.style.width = f.dataset.pct + '%';
+    });
+  }, 400);
+}
+
+function closeXray() {
+  document.getElementById('xrayOverlay').classList.remove('show');
+  // reset circle
+  document.getElementById('effCircle').style.strokeDashoffset = '238.76';
+}
+function closeXrayOutside(e) {
+  if (e.target === document.getElementById('xrayOverlay')) closeXray();
+}
+
+// ===================== TOAST =====================
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ===================== CONFETTI =====================
+function launchConfetti() {
+  const wrap = document.getElementById('confettiWrap');
+  wrap.innerHTML = '';
+  const colors = ['#FF6B35','#FFD166','#06D6A0','#118AB2','#9B5DE5','#F72585'];
+  for (let i = 0; i < 60; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'conf-dot';
+    dot.style.cssText = `
+      left:${Math.random()*100}%;
+      top:0;
+      background:${colors[Math.floor(Math.random()*colors.length)]};
+      animation-duration:${1.2+Math.random()*1.5}s;
+      animation-delay:${Math.random()*0.5}s;
+      width:${6+Math.random()*6}px;
+      height:${6+Math.random()*6}px;
+    `;
+    wrap.appendChild(dot);
+  }
+  setTimeout(() => { wrap.innerHTML = ''; }, 3000);
+}
+
+// ===================== INIT =====================
+setLevel(1);
+</script>
+</body>
+</html>
