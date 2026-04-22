@@ -326,7 +326,7 @@
 
   /* --- RESPONSIVE ADJUSTMENTS --- */
   @media (max-width: 768px) {
-    body { padding: 1rem 0.5rem; }
+    body { padding: 0; }
     
     .header-row { flex-direction: column; align-items: stretch; }
     .name-display, .decomp-panel { min-width: 100%; }
@@ -448,7 +448,8 @@
     <button class="act-btn" onclick="addExample('hexane')">Hexano</button>
     <button class="act-btn" onclick="addExample('butadiene')">Butadieno</button>
     <button class="act-btn" onclick="addExample('cyclohexane')">Cicloexano</button>
-    <button class="act-btn" onclick="addExample('cyclopentane')">Ciclopentano</button>
+    <button class="act-btn" onclick="addExample('benzene')">Benzeno</button>
+    <button class="act-btn" onclick="addExample('naphthalene')">Naftaleno</button>
     <button class="act-btn danger" onclick="clearAll()">✕ Limpar</button>
   </div>
 
@@ -819,6 +820,93 @@ function countRings() {
 }
 function isCyclic() { return atoms.length >= 3 && countRings() >= 1; }
 
+function findRings() {
+  const rings = [];
+  const visited = new Set();
+  
+  function getCycles(cur, path, parentId) {
+    visited.add(cur.id);
+    path.push(cur);
+    
+    const neighbors = getConnected(cur);
+    for (const n of neighbors) {
+      if (n.id === parentId) continue;
+      if (path.includes(n)) {
+        // Cycle found
+        const cycle = path.slice(path.indexOf(n));
+        if (cycle.length >= 3) {
+          const key = cycle.map(a => a.id).sort().join(',');
+          if (!rings.some(r => r.key === key)) {
+            rings.push({ atoms: cycle, key });
+          }
+        }
+      } else {
+        getCycles(n, [...path], cur.id);
+      }
+    }
+  }
+
+  if (atoms.length > 0) {
+    // We need to start DFS from every component
+    const components = [];
+    const globalVisited = new Set();
+    atoms.forEach(a => {
+      if (!globalVisited.has(a.id)) {
+        getCycles(a, [], null);
+        // Mark all atoms in this component as visited for the starting points
+        const stack = [a];
+        while(stack.length) {
+          const c = stack.pop();
+          if (globalVisited.has(c.id)) continue;
+          globalVisited.add(c.id);
+          getConnected(c).forEach(nc => stack.push(nc));
+        }
+      }
+    });
+  }
+  return rings;
+}
+
+function getBenzeneRings() {
+  const rings = findRings();
+  const benzeneRings = [];
+  
+  rings.forEach(ring => {
+    if (ring.atoms.length !== 6) return;
+    
+    // Check for 3 alternating double bonds
+    const ringAtoms = ring.atoms;
+    const ringBonds = [];
+    for (let i = 0; i < 6; i++) {
+      const a1 = ringAtoms[i];
+      const a2 = ringAtoms[(i + 1) % 6];
+      const b = bonds.find(b => (b.a1 === a1.id && b.a2 === a2.id) || (b.a2 === a1.id && b.a1 === a2.id));
+      if (b) ringBonds.push(b);
+    }
+    
+    if (ringBonds.length !== 6) return;
+    
+    const doubleBonds = ringBonds.filter(b => b.order === 2);
+    if (doubleBonds.length === 3) {
+      // Check if they are alternating
+      let alternating = true;
+      for (let i = 0; i < 6; i++) {
+        const b1 = ringBonds[i];
+        const b2 = ringBonds[(i + 1) % 6];
+        if (b1.order === 2 && b2.order === 2) {
+          alternating = false;
+          break;
+        }
+      }
+      if (alternating) {
+        benzeneRings.push(ring);
+      }
+    }
+  });
+  
+  return benzeneRings;
+}
+
 function findLongestChain() {
   return chooseMainChain();
 }
@@ -860,9 +948,15 @@ const PREFIXES = ['', 'met', 'et', 'prop', 'but', 'pent', 'hex', 'hept', 'oct', 
 
 const MULTIPLIERS = ['', '', 'di', 'tri', 'tetra', 'penta', 'hexa', 'hepta', 'octa', 'nona', 'deca'];
 
-function alkylNameFromCount(c) {
+function alkylNameFromCount(c, branchBonds = []) {
   const p = PREFIXES[c] || (c + 'c');
-  return `${p}il`; // metil, etil, propil, ...
+  const d = branchBonds.filter(b => b.order === 2).length;
+  const t = branchBonds.filter(b => b.order === 3).length;
+  
+  if (d === 0 && t === 0) return `${p}il`;
+  if (d > 0 && t === 0) return `${p}enil`;
+  if (t > 0) return `${p}inil`;
+  return `${p}il`;
 }
 
 function getBranchAtoms(startAtom, chainSet) {
@@ -902,8 +996,13 @@ function substituentsForChain(chain) {
     neighbors.forEach(n => {
       const branchAtoms = getBranchAtoms(n, chainSet);
       if (!branchAtoms.length) return;
+      
+      const branchIds = new Set(branchAtoms.map(ba => ba.id));
+      const branchBonds = bonds.filter(b => branchIds.has(b.a1) && branchIds.has(b.a2));
+      // Add the attachment bond if it's special (though usually it's single)
+      
       const count = branchAtoms.length;
-      const baseName = alkylNameFromCount(count);
+      const baseName = alkylNameFromCount(count, branchBonds);
       const linear = branchIsLinear(branchAtoms);
       subs.push({ locant: loc, name: baseName, hint: linear ? `${baseName} (cadeia lateral)` : `${baseName} (ramificado)` });
     });
@@ -1035,8 +1134,105 @@ function iupacName() {
   const cn = chain.length;
   const prefix = PREFIXES[cn] || (cn + 'c');
   const cyclic = isCyclic();
+  const bRings = getBenzeneRings();
   const allDoubles = bonds.filter(b => b.order === 2).length;
   const allTriples = bonds.filter(b => b.order === 3).length;
+
+  // Case: Naphthalene (two fused benzene rings)
+  if (bRings.length === 2) {
+    const sharedAtoms = bRings[0].atoms.filter(a1 => bRings[1].atoms.some(a2 => a2.id === a1.id));
+    if (sharedAtoms.length === 2) {
+      // Basic naphthalene detection
+      // Check if there are other atoms
+      const ringAtomIds = new Set([...bRings[0].atoms, ...bRings[1].atoms].map(a => a.id));
+      const externalAtoms = atoms.filter(a => !ringAtomIds.has(a.id));
+      
+      if (externalAtoms.length === 0) {
+        return {
+          name: 'naftaleno',
+          formula: 'C10H8',
+          type: 'Hidrocarboneto Aromático',
+          decomp: [
+            { text: 'naftaleno', kind: 'prefix', meaning: 'dois anéis benzênicos fundidos' }
+          ]
+        };
+      }
+    }
+  }
+
+  // Case: Benzene or substituted benzene
+  if (bRings.length === 1) {
+    const bRing = bRings[0];
+    const bRingIds = new Set(bRing.atoms.map(a => a.id));
+    
+    // Substituents on the benzene ring
+    const subs = [];
+    bRing.atoms.forEach((a, idx) => {
+      const neighbors = getConnected(a).filter(n => !bRingIds.has(n.id));
+      neighbors.forEach(n => {
+        const branchAtoms = getBranchAtoms(n, bRingIds);
+        const branchIds = new Set(branchAtoms.map(ba => ba.id));
+        const branchBonds = bonds.filter(b => branchIds.has(b.a1) && branchIds.has(b.a2));
+        
+        const count = branchAtoms.length;
+        const baseName = alkylNameFromCount(count, branchBonds);
+        subs.push({ locant: idx + 1, name: baseName, atomsCount: count });
+      });
+    });
+
+    // If there are substituents, we need to find the best numbering
+    // For benzene, we try all 6 starting positions and both directions (12 total)
+    let bestScore = null;
+    let bestName = "";
+    let bestDecomp = [];
+
+    const tryNumbering = (startIdx, step) => {
+      const currentSubs = subs.map(s => {
+        const originalIdx = s.locant - 1;
+        let relativePos = (originalIdx - startIdx) * step;
+        let finalLoc = (relativePos % 6 + 6) % 6 + 1;
+        return { ...s, locant: finalLoc };
+      });
+
+      const { text: subText, decomp: subDecomp } = formatSubstituents(currentSubs);
+      // Priority for lowest locant set
+      const score = currentSubs.map(s => s.locant).sort((a,b) => a-b);
+      
+      let fullName = (subText + "benzeno").replace(/-$/, "");
+      // IUPAC rule: if only one substituent, omit the "1-"
+      if (currentSubs.length === 1) {
+        fullName = currentSubs[0].name + "benzeno";
+      }
+      
+      if (!bestScore || compareLex(score, bestScore) < 0) {
+        bestScore = score;
+        bestName = fullName;
+        bestDecomp = [
+          ...subDecomp,
+          { text: 'benzeno', kind: 'prefix', meaning: 'anel aromático de 6 carbonos' }
+        ];
+      }
+    };
+
+    if (subs.length > 0) {
+      for (let i = 0; i < 6; i++) {
+        tryNumbering(i, 1);
+        tryNumbering(i, -1);
+      }
+    } else {
+      bestName = "benzeno";
+      bestDecomp = [{ text: 'benzeno', kind: 'prefix', meaning: 'anel aromático de 6 carbonos' }];
+    }
+
+    const totalH = atoms.reduce((s, a) => s + calcH(a), 0);
+    return {
+      name: bestName,
+      formula: `C${atoms.length}H${totalH}`,
+      type: 'Hidrocarboneto Aromático',
+      decomp: bestDecomp
+    };
+  }
+
   const { doubles, triples } = chainBonds(chain);
   const doubleLocants = bondLocantsInChain(chain, 2);
   const tripleLocants = bondLocantsInChain(chain, 3);
@@ -1281,6 +1477,55 @@ function addExample(name) {
       ring.push(addAtom(cx + Math.cos(angle) * r, cy + Math.sin(angle) * r));
     }
     ring.forEach((a, i) => addBond(a, ring[(i + 1) % 5], 1));
+  } else if (name === 'benzene') {
+    const r = 85;
+    const ring = [];
+    for (let i = 0; i < 6; i++) {
+      const angle = (i / 6) * Math.PI * 2 - Math.PI / 2;
+      ring.push(addAtom(cx + Math.cos(angle) * r, cy + Math.sin(angle) * r));
+    }
+    ring.forEach((a, i) => addBond(a, ring[(i + 1) % 6], i % 2 === 0 ? 2 : 1));
+
+  } else if (name === 'naphthalene') {
+    const r = 75;
+    const ring1 = [];
+    for (let i = 0; i < 6; i++) {
+      const angle = (i / 6) * Math.PI * 2 - Math.PI / 2;
+      ring1.push(addAtom(cx - 45 + Math.cos(angle) * r, cy + Math.sin(angle) * r));
+    }
+    ring1.forEach((a, i) => addBond(a, ring1[(i + 1) % 6], i % 2 === 0 ? 2 : 1));
+    
+    const aShared1 = ring1[1]; // at top-ish right
+    const aShared2 = ring1[2]; // at bottom-ish right
+    
+    // We need to be careful with the angle for the second ring.
+    // The shared atoms are at 30 deg and 90 deg? No, indices 0=270, 1=330, 2=30, 3=90, 4=150, 5=210.
+    // Shared bond is between index 1 (330) and 2 (30).
+    // Actually let's just place them manually for simplicity.
+    const dx = 45 + Math.cos(30 * Math.PI / 180) * r * 2 - 15; // approximate
+    // Naphthalene manual coords
+    // Let's just use the logic of adding the second ring.
+    const ring2 = [
+        ring1[2], ring1[1],
+        addAtom(cx + 45 + Math.cos(-30 * Math.PI / 180) * r, cy + Math.sin(-30 * Math.PI / 180) * r),
+        addAtom(cx + 45 + Math.cos(30 * Math.PI / 180) * r, cy + Math.sin(30 * Math.PI / 180) * r),
+        addAtom(cx + 45 + Math.cos(90 * Math.PI / 180) * r, cy + Math.sin(90 * Math.PI / 180) * r),
+        addAtom(cx + 45 + Math.cos(150 * Math.PI / 180) * r, cy + Math.sin(150 * Math.PI / 180) * r),
+    ];
+    // This is getting messy, let's just use a simpler layout for naphthalene example.
+    clearAll();
+    const d = 60;
+    const pts = [
+        {x: cx - d, y: cy - d*0.6}, {x: cx, y: cy - d*1.2}, {x: cx + d, y: cy - d*0.6},
+        {x: cx + 2*d, y: cy - d*1.2}, {x: cx + 3*d, y: cy - d*0.6}, {x: cx + 3*d, y: cy + d*0.6},
+        {x: cx + 2*d, y: cy + d*1.2}, {x: cx + d, y: cy + d*0.6}, {x: cx, y: cy + d*1.2},
+        {x: cx - d, y: cy + d*0.6}
+    ];
+    const atms = pts.map(p => addAtom(p.x, p.y));
+    const bnds = [
+        [0,1,2],[1,2,1],[2,3,2],[3,4,1],[4,5,2],[5,6,1],[6,7,2],[7,8,1],[8,9,2],[9,0,1],[2,7,1]
+    ];
+    bnds.forEach(b => addBond(atms[b[0]], atms[b[1]], b[2]));
   }
 
   selected = null; bondFirst = null;
