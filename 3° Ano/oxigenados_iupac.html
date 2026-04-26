@@ -886,6 +886,7 @@ function getBenzeneRings() {
   
   rings.forEach(ring => {
     if (ring.atoms.length !== 6) return;
+    if (!ring.atoms.every(a => a.elem === 'C' || !a.elem)) return;
     
     // Check for 3 alternating double bonds
     const ringAtoms = ring.atoms;
@@ -1015,16 +1016,17 @@ function substituentsForChain(chain) {
     const loc = idx + 1;
     const neighbors = getConnected(a).filter(n => !chainSet.has(n.id));
     neighbors.forEach(n => {
+      if (n.elem === 'O') return;
       const branchAtoms = getBranchAtoms(n, chainSet);
       if (!branchAtoms.length) return;
       
       const branchIds = new Set(branchAtoms.map(ba => ba.id));
       const branchBonds = bonds.filter(b => branchIds.has(b.a1) && branchIds.has(b.a2));
-      // Add the attachment bond if it's special (though usually it's single)
       
-      const count = branchAtoms.length;
+      const count = branchAtoms.filter(ba => ba.elem === 'C' || !ba.elem).length;
+      if (count === 0) return;
       const baseName = alkylNameFromCount(count, branchBonds);
-      const linear = branchIsLinear(branchAtoms);
+      const linear = branchIsLinear(branchAtoms.filter(ba => ba.elem === 'C' || !ba.elem));
       subs.push({ locant: loc, name: baseName, hint: linear ? `${baseName} (cadeia lateral)` : `${baseName} (ramificado)` });
     });
   });
@@ -1847,6 +1849,7 @@ addExample('butane');
 // --- OXIGENADOS OVERRIDE LOGIC ---
 // Substitui a logica original para suportar O
 function iupacName() {
+    let overrideDecomp = null;
     if (!atoms.length) return { name: '—', formula: '', type: '', decomp: [] };
     
     const carbons = atoms.filter(a => a.elem === 'C');
@@ -1899,6 +1902,7 @@ function iupacName() {
         }
     });
     
+    let carboxylC = null;
     carbons.forEach(c => {
         const c_bonds = bonds.filter(b => b.a1 === c.id || b.a2 === c.id);
         const c_oxygens = c_bonds.map(b => getAtom(b.a1 === c.id ? b.a2 : b.a1)).filter(a => a && a.elem === 'O');
@@ -1921,6 +1925,7 @@ function iupacName() {
         if (hasDoubleO && hasSingleO) {
             if (singleO_is_OH) {
                 hasCarboxyl = true;
+                carboxylC = c;
             } else {
                 hasEster = true;
                 hasEther = false; // Remove ether flag if it's actually an ester
@@ -2011,7 +2016,62 @@ function iupacName() {
     }
     else if (hasCarboxyl) { 
         type = "Ácido Carboxílico"; 
-        name = `Ácido ${baseName}${oMult}oico`; 
+        
+        let isRingCarboxylic = false;
+        let ringDecomp = [];
+        if (carboxylC) {
+            const carboxylNeighbors = bonds.filter(b => b.a1 === carboxylC.id || b.a2 === carboxylC.id)
+                                         .map(b => getAtom(b.a1 === carboxylC.id ? b.a2 : b.a1))
+                                         .filter(a => a && a.elem === 'C');
+                                         
+            if (carboxylNeighbors.length === 1) {
+                const ringC = carboxylNeighbors[0];
+                const rings = findRings();
+                const ring = rings.find(r => r.atoms.some(a => a.id === ringC.id));
+                if (ring) {
+                    const ringIds = new Set(ring.atoms.map(a => a.id));
+                    const outsideCarbons = carbons.filter(c => !ringIds.has(c.id) && c.id !== carboxylC.id);
+                    
+                    if (outsideCarbons.length === 0) {
+                        isRingCarboxylic = true;
+                        const bRings = getBenzeneRings();
+                        const isBenzene = bRings.some(br => br.atoms.some(a => a.id === ringC.id));
+                        
+                        if (isBenzene) {
+                            name = "Ácido benzoico";
+                            ringDecomp = [
+                                { text: "benz", kind: "prefix", meaning: "anel aromático" },
+                                { text: "oico", kind: "suffix", meaning: "grupo carboxila" }
+                            ];
+                        } else {
+                            const ringSize = ring.atoms.length;
+                            const rp = PREFIXES[ringSize] || (ringSize + 'c');
+                            const ringBonds = bonds.filter(b => ringIds.has(b.a1) && ringIds.has(b.a2));
+                            const hasDouble = ringBonds.some(b => b.order === 2);
+                            if (!hasDouble) {
+                                name = `Ácido ciclo${rp}anocarboxílico`;
+                                ringDecomp = [
+                                    { text: "ciclo", kind: "mod", meaning: "anel" },
+                                    { text: rp, kind: "prefix", meaning: `${ringSize} carbonos no anel` },
+                                    { text: "ano", kind: "infix", meaning: "ligações simples C-C" },
+                                    { text: "carboxílico", kind: "suffix", meaning: "grupo carboxila" }
+                                ];
+                            } else {
+                                isRingCarboxylic = false;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        if (!isRingCarboxylic) {
+            name = `Ácido ${baseName}${oMult}oico`; 
+        }
+        // Save the flag and decomp to use at the end
+        type = "Ácido Carboxílico";
+        // We'll attach it to a global-ish variable inside iupacName to use later
+        overrideDecomp = isRingCarboxylic ? ringDecomp : null;
     }
     else if (hasEster && esterO && esterC) { 
         type = "Éster"; 
@@ -2109,7 +2169,11 @@ function iupacName() {
     if (type === "Anidrido") {
          decomp = [ { text: name, kind: 'mod', meaning: 'Anidrido (cadeias contadas a partir do oxigênio central)' } ];
     } else if (type === "Ácido Carboxílico") {
-         decomp.push({ text: `${oMult}oico`, kind: 'suffix', meaning: 'grupo carboxila (Ácido Carboxílico)' });
+         if (overrideDecomp) {
+             decomp = overrideDecomp;
+         } else {
+             decomp.push({ text: `${oMult}oico`, kind: 'suffix', meaning: 'grupo carboxila (Ácido Carboxílico)' });
+         }
     } else if (type === "Éster") {
          decomp = [ { text: name, kind: 'mod', meaning: 'Éster (R-COO-R)' } ];
     } else if (type === "Aldeído") {
